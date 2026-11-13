@@ -94,10 +94,12 @@ def cargar_demo_records():
 # RUTAS HTML
 # ============================================================
 @app.get("/", response_class=HTMLResponse)
+@app.get("/index.html", response_class=HTMLResponse)
 @app.get("/dashboard", response_class=HTMLResponse)
 def index_page():
     rutas = [
         BASE_DIR / "index.html",
+        BASE_DIR / "api" / "index.html",
         BASE_DIR.parent / "index.html",
         BASE_DIR.parent / "dashboard.html"
     ]
