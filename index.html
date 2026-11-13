@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" class="dark">
+<html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,23 +12,18 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script>
     tailwind.config = {
-      darkMode: 'class',
       theme: {
         extend: {
           fontFamily: {
             sans: ['"Plus Jakarta Sans"', 'sans-serif'],
           },
           colors: {
-            gym: {
-              50: '#ecfdf5',
-              100: '#d1fae5',
-              400: '#34d399',
-              500: '#10b981',
-              600: '#059669',
-              700: '#047857',
-              dark: '#0b0f19',
-              card: '#111827',
-              border: '#1f2937'
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
             }
           }
         }
@@ -37,190 +32,303 @@
   </script>
   <style>
     body {
-      background-color: #0b0f19;
-      color: #f3f4f6;
+      background-color: #f8fafc;
+      color: #0f172a;
     }
     .custom-scrollbar::-webkit-scrollbar {
       width: 6px;
       height: 6px;
     }
     .custom-scrollbar::-webkit-scrollbar-track {
-      background: #111827;
+      background: #f1f5f9;
     }
     .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: #374151;
+      background: #cbd5e1;
       border-radius: 9999px;
+    }
+    canvas {
+      cursor: pointer;
     }
   </style>
 </head>
-<body class="min-h-screen font-sans flex flex-col">
+<body class="min-h-screen font-sans flex flex-col bg-slate-50 text-slate-800">
 
-  <!-- TOPBAR -->
-  <header class="border-b border-gray-800 bg-gray-900/80 backdrop-blur sticky top-0 z-40 px-6 py-4 flex flex-wrap items-center justify-between gap-4">
-    <div class="flex items-center gap-3">
-      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-gray-950 font-black shadow-lg shadow-emerald-500/20">
-        <i data-lucide="dumbbell" class="w-6 h-6"></i>
+  <!-- TOPBAR CLARO Y LLAMATIVO -->
+  <header class="border-b border-slate-200 bg-white/95 backdrop-blur sticky top-0 z-40 px-6 py-3.5 shadow-sm">
+    <div class="max-w-[1650px] mx-auto flex flex-wrap items-center justify-between gap-4">
+      
+      <!-- Brand & Titulo -->
+      <div class="flex items-center gap-3">
+        <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-emerald-400 flex items-center justify-center text-white font-black shadow-md shadow-indigo-500/20">
+          <i data-lucide="dumbbell" class="w-6 h-6 text-white"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-xl font-extrabold tracking-tight text-slate-900">
+              FITNESS PRO
+            </h1>
+            <span class="text-[11px] font-bold px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200">
+              ANALYTICS 2.0
+            </span>
+          </div>
+          <p class="text-xs text-slate-500 font-medium">Pipeline: Limpieza (Pandas) → MySQL → FastAPI → Dashboard Interactivo</p>
+        </div>
       </div>
-      <div>
-        <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-          FITNESS PRO <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">ANALYTICS</span>
-        </h1>
-        <p class="text-xs text-gray-400">Pipeline de Datos: Limpieza (Pandas) → MySQL → FastAPI → Web App</p>
-      </div>
-    </div>
 
-    <div class="flex items-center gap-3">
-      <!-- Status Badge -->
-      <div id="statusBadge" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-800 border border-gray-700 text-xs">
-        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-        <span id="statusText" class="text-gray-300 font-medium">Conectado a FastAPI</span>
+      <!-- Acciones de Cabecera -->
+      <div class="flex items-center gap-3">
+        <!-- Badge de Estado -->
+        <div id="statusBadge" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 font-semibold shadow-sm">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span id="statusText">Cargando datos...</span>
+        </div>
+
+        <!-- Botón Reset Filtros -->
+        <button onclick="resetearFiltros()" id="btnResetGlobal" class="hidden flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 transition shadow-sm">
+          <i data-lucide="filter-x" class="w-3.5 h-3.5"></i>
+          Quitar Filtros (<span id="cantFiltrosActivos">0</span>)
+        </button>
+
+        <!-- Botón Actualizar -->
+        <button onclick="cargarTodo()" class="flex items-center gap-2 px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition shadow-md shadow-indigo-500/20">
+          <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+          Actualizar
+        </button>
       </div>
 
-      <!-- Recargar datos -->
-      <button onclick="cargarTodo()" class="flex items-center gap-2 px-3.5 py-1.5 text-xs font-medium rounded-lg bg-emerald-500 text-gray-950 hover:bg-emerald-400 transition font-semibold shadow-lg shadow-emerald-500/20">
-        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
-        Actualizar Datos
-      </button>
     </div>
   </header>
 
-  <!-- MAIN CONTENT -->
-  <main class="flex-1 p-6 max-w-[1600px] w-full mx-auto space-y-6">
+  <!-- CONTENIDO PRINCIPAL -->
+  <main class="flex-1 p-6 max-w-[1650px] w-full mx-auto space-y-6">
 
-    <!-- KPI CARDS -->
+    <!-- BARRA DE FILTROS SUPERIOR -->
+    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        
+        <div class="flex items-center gap-2 text-xs font-bold text-slate-700 uppercase tracking-wider">
+          <i data-lucide="sliders-horizontal" class="w-4 h-4 text-indigo-600"></i>
+          Filtros del Tablero
+          <span class="text-[11px] font-normal text-slate-400 capitalize">(Impacta en todos los gráficos y KPIs)</span>
+        </div>
+
+        <span class="text-xs text-indigo-600 font-semibold bg-indigo-50 px-2.5 py-1 rounded-md border border-indigo-100 flex items-center gap-1">
+          <i data-lucide="mouse-pointer-click" class="w-3.5 h-3.5"></i>
+          Tip: También podés tocar barras o porciones de los gráficos para filtrar
+        </span>
+      </div>
+
+      <!-- Controles de Filtros -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 pt-1">
+        
+        <!-- Buscador -->
+        <div class="relative">
+          <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
+          <input type="text" id="filtroBuscador" placeholder="Buscar socio o DNI..." 
+            class="w-full pl-9 pr-3 py-2 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition font-medium">
+        </div>
+
+        <!-- Filtro Sucursal -->
+        <div>
+          <select id="filtroSucursal" onchange="aplicarFiltrosDesdeSelect()" 
+            class="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition font-medium">
+            <option value="">🏢 Todas las Sedes</option>
+            <option value="Sede Centro">Sede Centro</option>
+            <option value="Sede Norte">Sede Norte</option>
+            <option value="Sede Sur">Sede Sur</option>
+            <option value="Sede Oeste">Sede Oeste</option>
+          </select>
+        </div>
+
+        <!-- Filtro Plan -->
+        <div>
+          <select id="filtroPlan" onchange="aplicarFiltrosDesdeSelect()" 
+            class="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition font-medium">
+            <option value="">🏋️ Todos los Planes</option>
+            <option value="Musculación">Musculación</option>
+            <option value="Pase Libre">Pase Libre</option>
+            <option value="CrossFit">CrossFit</option>
+            <option value="Funcional">Funcional</option>
+            <option value="Spinning">Spinning</option>
+          </select>
+        </div>
+
+        <!-- Filtro Medio de Pago -->
+        <div>
+          <select id="filtroPago" onchange="aplicarFiltrosDesdeSelect()" 
+            class="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition font-medium">
+            <option value="">💳 Todos los Medios de Pago</option>
+            <option value="Efectivo">Efectivo</option>
+            <option value="Mercado Pago">Mercado Pago</option>
+            <option value="Transferencia">Transferencia</option>
+            <option value="Tarjeta Débito">Tarjeta Débito</option>
+            <option value="Tarjeta Crédito">Tarjeta Crédito</option>
+          </select>
+        </div>
+
+        <!-- Filtro Estado -->
+        <div>
+          <select id="filtroEstado" onchange="aplicarFiltrosDesdeSelect()" 
+            class="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition font-medium">
+            <option value="">🟢 Todos los Estados</option>
+            <option value="Activo">Activo</option>
+            <option value="Moroso">Moroso</option>
+            <option value="Inactivo">Inactivo</option>
+          </select>
+        </div>
+
+      </div>
+
+      <!-- Chips de Filtros Activos (Visual Feedback) -->
+      <div id="chipsContainer" class="hidden flex flex-wrap items-center gap-2 pt-2 border-t border-slate-100 text-xs">
+        <span class="text-slate-400 font-semibold text-[11px]">Filtros activos:</span>
+        <div id="chipsList" class="flex flex-wrap gap-1.5"></div>
+      </div>
+    </div>
+
+    <!-- TARJETAS DE KPIS PRINCIPALES -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       
       <!-- Facturacion Total -->
-      <div class="bg-gray-900/90 border border-gray-800 rounded-2xl p-5 relative overflow-hidden shadow-sm hover:border-gray-700 transition">
-        <div class="flex items-center justify-between text-gray-400 mb-2">
-          <span class="text-xs font-semibold uppercase tracking-wider">Facturación Total</span>
-          <div class="p-2 rounded-lg bg-emerald-500/10 text-emerald-400">
-            <i data-lucide="dollar-sign" class="w-4 h-4"></i>
+      <div class="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-sm hover:shadow-md transition">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Facturación Total</span>
+          <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+            <i data-lucide="dollar-sign" class="w-5 h-5"></i>
           </div>
         </div>
-        <div class="text-2xl lg:text-3xl font-extrabold text-white tracking-tight" id="kpiFacturacion">
-          $ 242.002.400
+        <div class="text-2xl lg:text-3xl font-extrabold text-slate-900 tracking-tight" id="kpiFacturacion">
+          $ 0
         </div>
-        <div class="mt-2 flex items-center gap-1.5 text-xs text-emerald-400">
-          <i data-lucide="trending-up" class="w-3.5 h-3.5"></i>
-          <span>12.000 cuotas procesadas</span>
+        <div class="mt-2 flex items-center gap-1.5 text-xs text-emerald-600 font-medium">
+          <i data-lucide="trending-up" class="w-4 h-4"></i>
+          <span id="kpiTransaccionesSub">12.000 cuotas procesadas</span>
         </div>
       </div>
 
       <!-- Socios Únicos -->
-      <div class="bg-gray-900/90 border border-gray-800 rounded-2xl p-5 relative overflow-hidden shadow-sm hover:border-gray-700 transition">
-        <div class="flex items-center justify-between text-gray-400 mb-2">
-          <span class="text-xs font-semibold uppercase tracking-wider">Socios Únicos</span>
-          <div class="p-2 rounded-lg bg-blue-500/10 text-blue-400">
-            <i data-lucide="users" class="w-4 h-4"></i>
+      <div class="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-sm hover:shadow-md transition">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Socios Únicos</span>
+          <div class="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+            <i data-lucide="users" class="w-5 h-5"></i>
           </div>
         </div>
-        <div class="text-2xl lg:text-3xl font-extrabold text-white tracking-tight" id="kpiSocios">
-          3.826
+        <div class="text-2xl lg:text-3xl font-extrabold text-slate-900 tracking-tight" id="kpiSocios">
+          0
         </div>
-        <div class="mt-2 flex items-center gap-1.5 text-xs text-blue-400">
-          <i data-lucide="user-check" class="w-3.5 h-3.5"></i>
+        <div class="mt-2 flex items-center gap-1.5 text-xs text-indigo-600 font-medium">
+          <i data-lucide="user-check" class="w-4 h-4"></i>
           <span>Registros limpios deduplicados</span>
         </div>
       </div>
 
       <!-- Ticket Promedio -->
-      <div class="bg-gray-900/90 border border-gray-800 rounded-2xl p-5 relative overflow-hidden shadow-sm hover:border-gray-700 transition">
-        <div class="flex items-center justify-between text-gray-400 mb-2">
-          <span class="text-xs font-semibold uppercase tracking-wider">Ticket Promedio</span>
-          <div class="p-2 rounded-lg bg-purple-500/10 text-purple-400">
-            <i data-lucide="receipt" class="w-4 h-4"></i>
+      <div class="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-sm hover:shadow-md transition">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Ticket Promedio</span>
+          <div class="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold">
+            <i data-lucide="receipt" class="w-5 h-5"></i>
           </div>
         </div>
-        <div class="text-2xl lg:text-3xl font-extrabold text-white tracking-tight" id="kpiTicket">
-          $ 20.166,87
+        <div class="text-2xl lg:text-3xl font-extrabold text-slate-900 tracking-tight" id="kpiTicket">
+          $ 0
         </div>
-        <div class="mt-2 flex items-center gap-1.5 text-xs text-purple-400">
-          <i data-lucide="badge-percent" class="w-3.5 h-3.5"></i>
-          <span>Ingreso medio por comprobante</span>
+        <div class="mt-2 flex items-center gap-1.5 text-xs text-purple-600 font-medium">
+          <i data-lucide="badge-percent" class="w-4 h-4"></i>
+          <span>Ingreso promedio por comprobante</span>
         </div>
       </div>
 
       <!-- Edad Promedio -->
-      <div class="bg-gray-900/90 border border-gray-800 rounded-2xl p-5 relative overflow-hidden shadow-sm hover:border-gray-700 transition">
-        <div class="flex items-center justify-between text-gray-400 mb-2">
-          <span class="text-xs font-semibold uppercase tracking-wider">Edad Promedio</span>
-          <div class="p-2 rounded-lg bg-amber-500/10 text-amber-400">
-            <i data-lucide="activity" class="w-4 h-4"></i>
+      <div class="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-sm hover:shadow-md transition">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Edad Promedio</span>
+          <div class="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+            <i data-lucide="activity" class="w-5 h-5"></i>
           </div>
         </div>
-        <div class="text-2xl lg:text-3xl font-extrabold text-white tracking-tight" id="kpiEdad">
-          41.9 años
+        <div class="text-2xl lg:text-3xl font-extrabold text-slate-900 tracking-tight" id="kpiEdad">
+          0 años
         </div>
-        <div class="mt-2 flex items-center gap-1.5 text-xs text-amber-400">
-          <i data-lucide="heart-pulse" class="w-3.5 h-3.5"></i>
-          <span>Rango válido de 14 a 85 años</span>
+        <div class="mt-2 flex items-center gap-1.5 text-xs text-amber-600 font-medium">
+          <i data-lucide="heart-pulse" class="w-4 h-4"></i>
+          <span>Imputada por mediana estadística</span>
         </div>
       </div>
 
     </div>
 
-    <!-- CHARTS GRID (Igual a los 4 cuadrantes del pizarrón) -->
+    <!-- GRID DE GRÁFICOS (4 CUADRANTES DEL PIZARRÓN) -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-      <!-- Cuadrante 1: Gráfico de Torta / Donut (Planes de Membresía) -->
-      <div class="bg-gray-900/90 border border-gray-800 rounded-2xl p-5 shadow-sm flex flex-col">
+      <!-- Cuadrante 1: Gráfico de Donut (Planes de Membresía) -->
+      <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition flex flex-col">
         <div class="flex items-center justify-between mb-4">
           <div>
-            <h3 class="text-base font-semibold text-white">Distribución por Plan</h3>
-            <p class="text-xs text-gray-400">Participación de recaudación</p>
+            <h3 class="text-base font-bold text-slate-900 flex items-center gap-1.5">
+              <span>Distribución por Plan</span>
+              <span id="badgeFiltroPlan" class="hidden text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-bold">Filtrado</span>
+            </h3>
+            <p class="text-xs text-slate-500">Hacé clic en una porción para filtrar</p>
           </div>
-          <div class="p-1.5 rounded-lg bg-gray-800 text-gray-400">
+          <div class="p-2 rounded-xl bg-indigo-50 text-indigo-600">
             <i data-lucide="pie-chart" class="w-4 h-4"></i>
           </div>
         </div>
-        <div class="relative flex-1 min-h-[260px] flex items-center justify-center">
+        <div class="relative flex-1 min-h-[270px] flex items-center justify-center">
           <canvas id="chartPlanes"></canvas>
         </div>
       </div>
 
-      <!-- Cuadrante 2: Gráfico de Barras (Recaudación por Sucursal) -->
-      <div class="bg-gray-900/90 border border-gray-800 rounded-2xl p-5 shadow-sm flex flex-col">
+      <!-- Cuadrante 2: Gráfico de Barras Verticales (Sucursales) -->
+      <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition flex flex-col">
         <div class="flex items-center justify-between mb-4">
           <div>
-            <h3 class="text-base font-semibold text-white">Facturación por Sucursal</h3>
-            <p class="text-xs text-gray-400">Sede Centro, Norte, Sur y Oeste</p>
+            <h3 class="text-base font-bold text-slate-900 flex items-center gap-1.5">
+              <span>Facturación por Sucursal</span>
+              <span id="badgeFiltroSucursal" class="hidden text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-bold">Filtrado</span>
+            </h3>
+            <p class="text-xs text-slate-500">Hacé clic en una barra para filtrar por sede</p>
           </div>
-          <div class="p-1.5 rounded-lg bg-gray-800 text-gray-400">
+          <div class="p-2 rounded-xl bg-blue-50 text-blue-600">
             <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
           </div>
         </div>
-        <div class="relative flex-1 min-h-[260px]">
+        <div class="relative flex-1 min-h-[270px]">
           <canvas id="chartSucursales"></canvas>
         </div>
       </div>
 
       <!-- Cuadrante 3: Gráfico de Barras Horizontales (Formas de Pago) -->
-      <div class="bg-gray-900/90 border border-gray-800 rounded-2xl p-5 shadow-sm flex flex-col">
+      <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition flex flex-col">
         <div class="flex items-center justify-between mb-4">
           <div>
-            <h3 class="text-base font-semibold text-white">Medios de Pago</h3>
-            <p class="text-xs text-gray-400">Canales más utilizados por los socios</p>
+            <h3 class="text-base font-bold text-slate-900 flex items-center gap-1.5">
+              <span>Medios de Pago</span>
+              <span id="badgeFiltroPago" class="hidden text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-bold">Filtrado</span>
+            </h3>
+            <p class="text-xs text-slate-500">Hacé clic en un canal para filtrar</p>
           </div>
-          <div class="p-1.5 rounded-lg bg-gray-800 text-gray-400">
+          <div class="p-2 rounded-xl bg-emerald-50 text-emerald-600">
             <i data-lucide="credit-card" class="w-4 h-4"></i>
           </div>
         </div>
-        <div class="relative flex-1 min-h-[260px]">
+        <div class="relative flex-1 min-h-[270px]">
           <canvas id="chartPagos"></canvas>
         </div>
       </div>
 
     </div>
 
-    <!-- Cuadrante 4: Evolución Temporal (Líneas) -->
-    <div class="bg-gray-900/90 border border-gray-800 rounded-2xl p-5 shadow-sm">
+    <!-- Cuadrante 4: Evolución Temporal de Ingresos (Líneas) -->
+    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition">
       <div class="flex items-center justify-between mb-4">
         <div>
-          <h3 class="text-base font-semibold text-white">Evolución de Ingresos Mensuales</h3>
-          <p class="text-xs text-gray-400">Histórico de facturación temporal consolidada</p>
+          <h3 class="text-base font-bold text-slate-900">Evolución de Ingresos Mensuales</h3>
+          <p class="text-xs text-slate-500">Consolidado temporal de facturación a lo largo del tiempo</p>
         </div>
-        <div class="p-1.5 rounded-lg bg-gray-800 text-gray-400">
+        <div class="p-2 rounded-xl bg-purple-50 text-purple-600">
           <i data-lucide="line-chart" class="w-4 h-4"></i>
         </div>
       </div>
@@ -229,172 +337,222 @@
       </div>
     </div>
 
-    <!-- TABLA DE DETALLE (Cuadrante inferior derecho del pizarrón) -->
-    <div class="bg-gray-900/90 border border-gray-800 rounded-2xl p-5 shadow-sm space-y-4">
+    <!-- TABLA DE DETALLE INTERACTIVA (Cuadrante inferior derecho) -->
+    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
       <div class="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h3 class="text-base font-semibold text-white">Registro Detallado de Cobros</h3>
-          <p class="text-xs text-gray-400">Datos limpios desde MySQL servidos en tiempo real por FastAPI</p>
+          <h3 class="text-base font-bold text-slate-900">Registro Detallado de Cobros</h3>
+          <p class="text-xs text-slate-500">Transacciones sincronizadas con los filtros y selecciones de gráficos</p>
         </div>
-
-        <!-- Filtros Rápidos -->
-        <div class="flex flex-wrap items-center gap-2">
-          <input type="text" id="filtroBuscador" placeholder="Buscar por socio o DNI..." 
-            class="px-3.5 py-1.5 text-xs rounded-lg bg-gray-800 border border-gray-700 text-gray-200 placeholder-gray-500 focus:outline-none focus:border-emerald-500">
-          
-          <select id="filtroSucursal" class="px-3 py-1.5 text-xs rounded-lg bg-gray-800 border border-gray-700 text-gray-200 focus:outline-none focus:border-emerald-500">
-            <option value="">Todas las Sedes</option>
-            <option value="Sede Centro">Sede Centro</option>
-            <option value="Sede Norte">Sede Norte</option>
-            <option value="Sede Sur">Sede Sur</option>
-            <option value="Sede Oeste">Sede Oeste</option>
-          </select>
-
-          <select id="filtroPlan" class="px-3 py-1.5 text-xs rounded-lg bg-gray-800 border border-gray-700 text-gray-200 focus:outline-none focus:border-emerald-500">
-            <option value="">Todos los Planes</option>
-            <option value="Musculación">Musculación</option>
-            <option value="Pase Libre">Pase Libre</option>
-            <option value="CrossFit">CrossFit</option>
-            <option value="Funcional">Funcional</option>
-            <option value="Spinning">Spinning</option>
-          </select>
-        </div>
+        <span id="tablaResumenFilas" class="text-xs font-semibold px-3 py-1 rounded-full bg-slate-100 text-slate-700">
+          Cargando registros...
+        </span>
       </div>
 
-      <!-- Tabla -->
-      <div class="overflow-x-auto custom-scrollbar border border-gray-800 rounded-xl">
-        <table class="w-full text-left text-xs text-gray-300">
-          <thead class="bg-gray-800/60 uppercase font-semibold text-gray-400 border-b border-gray-800">
+      <!-- Tabla Estilizada -->
+      <div class="overflow-x-auto custom-scrollbar border border-slate-200 rounded-xl">
+        <table class="w-full text-left text-xs text-slate-700">
+          <thead class="bg-slate-100/80 uppercase font-bold text-slate-500 border-b border-slate-200">
             <tr>
               <th class="px-4 py-3">Recibo</th>
               <th class="px-4 py-3">Fecha</th>
               <th class="px-4 py-3">DNI</th>
               <th class="px-4 py-3">Socio</th>
-              <th class="px-4 py-3">Edad</th>
+              <th class="px-4 py-3 text-center">Edad</th>
               <th class="px-4 py-3">Plan</th>
               <th class="px-4 py-3">Sucursal</th>
               <th class="px-4 py-3 text-right">Monto</th>
-              <th class="px-4 py-3">Medio de Pago</th>
+              <th class="px-4 py-3">Forma Pago</th>
               <th class="px-4 py-3 text-center">Estado</th>
             </tr>
           </thead>
-          <tbody id="tablaCuerpo" class="divide-y divide-gray-800 font-medium">
+          <tbody id="tablaCuerpo" class="divide-y divide-slate-100 font-medium">
             <tr>
-              <td colspan="10" class="text-center py-8 text-gray-500">Cargando datos...</td>
+              <td colspan="10" class="text-center py-8 text-slate-400">Cargando datos...</td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <!-- Paginador simple -->
-      <div class="flex items-center justify-between text-xs text-gray-400 pt-2">
+      <!-- Paginador -->
+      <div class="flex items-center justify-between text-xs text-slate-500 pt-1">
         <span id="tablaContador">Mostrando registros</span>
         <div class="flex gap-2">
-          <button onclick="cambiarPagina(-1)" id="btnAnt" class="px-3 py-1 rounded bg-gray-800 hover:bg-gray-700 text-gray-300 disabled:opacity-40">Anterior</button>
-          <button onclick="cambiarPagina(1)" id="btnSig" class="px-3 py-1 rounded bg-gray-800 hover:bg-gray-700 text-gray-300 disabled:opacity-40">Siguiente</button>
+          <button onclick="cambiarPagina(-1)" id="btnAnt" class="px-3.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition disabled:opacity-40">Anterior</button>
+          <button onclick="cambiarPagina(1)" id="btnSig" class="px-3.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition disabled:opacity-40">Siguiente</button>
         </div>
       </div>
     </div>
 
   </main>
 
-  <!-- JAVASCRIPT LOGIC -->
+  <!-- JAVASCRIPT: LÓGICA DE FILTRADO CRUZADO Y GRÁFICOS -->
   <script>
     const esLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
     const API_BASE = esLocal ? "http://127.0.0.1:8000" : window.location.origin;
+
+    // Estado global de filtros
+    let estadoFiltros = {
+      busqueda: "",
+      sucursal: "",
+      plan: "",
+      pago: "",
+      estado: ""
+    };
+
+    let datasetCompleto = [];
+    let datasetFiltrado = [];
+    let paginaActual = 1;
+    const porPagina = 12;
+
+    // Instancias de Chart.js
     let chartPlanesInst = null;
     let chartSucursalesInst = null;
     let chartPagosInst = null;
     let chartEvolucionInst = null;
 
-    let todosLosCobros = [];
-    let cobrosFiltrados = [];
-    let paginaActual = 1;
-    const porPagina = 12;
-
+    // Carga Inicial
     async function cargarTodo() {
       try {
         lucide.createIcons();
         document.getElementById("statusText").innerText = "Sincronizando datos...";
-        
-        // 1. Cargar KPIs Resumen
-        const urlKpis = esLocal ? `${API_BASE}/kpis/resumen` : `${API_BASE}/api/kpis/resumen`;
-        const resKpis = await fetch(urlKpis);
-        if (!resKpis.ok) throw new Error("Error consultando KPIs");
-        const dataKpis = await resKpis.json();
-        
-        renderizarKpis(dataKpis);
-        renderizarGraficos(dataKpis);
 
-        // 2. Cargar tabla de cobros
-        const urlCobros = esLocal ? `${API_BASE}/cobros?limit=1500` : `${API_BASE}/api/cobros?limit=1500`;
+        // Intentar descargar cobros completos
+        const urlCobros = esLocal ? `${API_BASE}/cobros/powerbi` : `${API_BASE}/api/cobros/powerbi`;
         const resCobros = await fetch(urlCobros);
+
         if (resCobros.ok) {
-          todosLosCobros = await resCobros.json();
-          cobrosFiltrados = [...todosLosCobros];
-          renderizarTabla();
-          generarEvolucionMensual(todosLosCobros);
+          datasetCompleto = await resCobros.json();
+          document.getElementById("statusText").innerText = esLocal ? "Conectado a MySQL (Local)" : "En línea (Vercel Cloud)";
+          document.getElementById("statusBadge").className = "flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 font-semibold shadow-sm";
+        } else {
+          throw new Error("No se pudo obtener datos completos");
         }
-
-        document.getElementById("statusText").innerText = esLocal ? "Conectado a FastAPI (MySQL Local)" : "En línea (Vercel Cloud)";
-        document.getElementById("statusBadge").className = "flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-950/40 border border-emerald-500/30 text-xs";
       } catch (err) {
-        console.warn("No se pudo conectar a la API en vivo, usando datos demostrativos precargados:", err);
-        document.getElementById("statusText").innerText = "Modo Demostración (Offline)";
-        document.getElementById("statusBadge").className = "flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-950/40 border border-blue-500/30 text-xs";
-        cargarDatosDemo();
+        console.warn("Usando datos de demostración precargados:", err);
+        datasetCompleto = generarDatasetDemo();
+        document.getElementById("statusText").innerText = "Modo Demostración";
+        document.getElementById("statusBadge").className = "flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-50 border border-blue-200 text-xs text-blue-800 font-semibold shadow-sm";
       }
+
+      // Aplicar filtros iniciales y renderizar todo
+      aplicarFiltrosYActualizarTodo();
     }
 
-    function renderizarKpis(data) {
-      const g = data.metricas_generales;
-      document.getElementById("kpiFacturacion").innerText = "$ " + Number(g.facturacion_total).toLocaleString("es-AR", {minimumFractionDigits: 0, maximumFractionDigits: 0});
-      document.getElementById("kpiSocios").innerText = Number(g.total_socios_unicos).toLocaleString("es-AR");
-      document.getElementById("kpiTicket").innerText = "$ " + Number(g.ticket_promedio).toLocaleString("es-AR", {minimumFractionDigits: 2, maximumFractionDigits: 2});
-      document.getElementById("kpiEdad").innerText = Number(g.edad_promedio).toFixed(1) + " años";
+    // APLICAR FILTROS GLOBALES
+    function aplicarFiltrosYActualizarTodo() {
+      datasetFiltrado = datasetCompleto.filter(c => {
+        // Buscador texto (socio o dni)
+        const q = estadoFiltros.busqueda.toLowerCase().trim();
+        const matchQ = !q || c.nombre_socio.toLowerCase().includes(q) || c.dni_socio.toString().includes(q);
+
+        // Dropdowns / Selecciones en gráficos
+        const matchSuc = !estadoFiltros.sucursal || c.sucursal === estadoFiltros.sucursal;
+        const matchPlan = !estadoFiltros.plan || c.plan_membresia === estadoFiltros.plan;
+        const matchPago = !estadoFiltros.pago || c.forma_pago === estadoFiltros.pago;
+        const matchEst = !estadoFiltros.estado || c.estado_membresia === estadoFiltros.estado;
+
+        return matchQ && matchSuc && matchPlan && matchPago && matchEst;
+      });
+
+      // 1. Recalcular KPIs
+      actualizarKpis(datasetFiltrado);
+
+      // 2. Actualizar los 4 Gráficos
+      actualizarGraficos(datasetFiltrado);
+
+      // 3. Actualizar Tabla
+      paginaActual = 1;
+      actualizarTabla();
+
+      // 4. Actualizar barra de chips y badges
+      actualizarUIFiltros();
     }
 
-    function renderizarGraficos(data) {
-      // 1. Planes (Donut)
+    // 1. ACTUALIZAR KPIS
+    function actualizarKpis(datos) {
+      const totalTransacciones = datos.length;
+      const facturacionTotal = datos.reduce((acc, c) => acc + Number(c.monto_pagado || 0), 0);
+      const sociosUnicos = new Set(datos.map(c => c.dni_socio)).size;
+      const ticketPromedio = totalTransacciones > 0 ? (facturacionTotal / totalTransacciones) : 0;
+      const edadPromedio = totalTransacciones > 0 ? (datos.reduce((acc, c) => acc + Number(c.edad || 0), 0) / totalTransacciones) : 0;
+
+      document.getElementById("kpiFacturacion").innerText = "$ " + facturacionTotal.toLocaleString("es-AR", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+      document.getElementById("kpiSocios").innerText = sociosUnicos.toLocaleString("es-AR");
+      document.getElementById("kpiTicket").innerText = "$ " + ticketPromedio.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      document.getElementById("kpiEdad").innerText = edadPromedio.toFixed(1) + " años";
+      document.getElementById("kpiTransaccionesSub").innerText = `${totalTransacciones.toLocaleString("es-AR")} cuotas filtradas`;
+    }
+
+    // 2. ACTUALIZAR GRÁFICOS (CON INTERACCIÓN AL TOCAR)
+    function actualizarGraficos(datos) {
+      // A. Agrupación por Plan
+      const planesMap = {};
+      datos.forEach(c => {
+        planesMap[c.plan_membresia] = (planesMap[c.plan_membresia] || 0) + Number(c.monto_pagado || 0);
+      });
+      const labelsPlanes = Object.keys(planesMap);
+      const dataPlanes = Object.values(planesMap);
+
       const ctxPlanes = document.getElementById("chartPlanes").getContext("2d");
       if (chartPlanesInst) chartPlanesInst.destroy();
       chartPlanesInst = new Chart(ctxPlanes, {
         type: 'doughnut',
         data: {
-          labels: data.recaudacion_por_plan.map(p => p.plan_membresia),
+          labels: labelsPlanes,
           datasets: [{
-            data: data.recaudacion_por_plan.map(p => p.total_recaudado),
-            backgroundColor: ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ec4899'],
-            borderWidth: 0
+            data: dataPlanes,
+            backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#06b6d4', '#f43f5e'],
+            borderWidth: 2,
+            borderColor: '#ffffff',
+            hoverOffset: 8
           }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { position: 'bottom', labels: { color: '#9ca3af', font: { size: 11 } } },
+            legend: { position: 'bottom', labels: { color: '#475569', font: { size: 11, weight: '600' } } },
             tooltip: {
               callbacks: {
                 label: (ctx) => ` $ ${Number(ctx.raw).toLocaleString('es-AR')}`
               }
             }
           },
-          cutout: '70%'
+          cutout: '68%',
+          onClick: (e, elements) => {
+            if (elements.length > 0) {
+              const index = elements[0].index;
+              const planSeleccionado = labelsPlanes[index];
+              // Si ya estaba seleccionado, lo deselecciona (toggle)
+              estadoFiltros.plan = (estadoFiltros.plan === planSeleccionado) ? "" : planSeleccionado;
+              document.getElementById("filtroPlan").value = estadoFiltros.plan;
+              aplicarFiltrosYActualizarTodo();
+            }
+          }
         }
       });
 
-      // 2. Sucursales (Barra Vertical)
+      // B. Agrupación por Sucursal
+      const sucMap = {};
+      datos.forEach(c => {
+        sucMap[c.sucursal] = (sucMap[c.sucursal] || 0) + Number(c.monto_pagado || 0);
+      });
+      const labelsSuc = Object.keys(sucMap);
+      const dataSuc = Object.values(sucMap);
+
       const ctxSuc = document.getElementById("chartSucursales").getContext("2d");
       if (chartSucursalesInst) chartSucursalesInst.destroy();
       chartSucursalesInst = new Chart(ctxSuc, {
         type: 'bar',
         data: {
-          labels: data.recaudacion_por_sucursal.map(s => s.sucursal),
+          labels: labelsSuc,
           datasets: [{
-            label: 'Total Recaudado',
-            data: data.recaudacion_por_sucursal.map(s => s.total_recaudado),
-            backgroundColor: '#3b82f6',
-            borderRadius: 8
+            label: 'Recaudación',
+            data: dataSuc,
+            backgroundColor: labelsSuc.map(s => s === estadoFiltros.sucursal ? '#4338ca' : '#6366f1'),
+            borderRadius: 8,
+            barThickness: 36
           }]
         },
         options: {
@@ -402,25 +560,42 @@
           maintainAspectRatio: false,
           plugins: { legend: { display: false } },
           scales: {
-            x: { ticks: { color: '#9ca3af', font: { size: 10 } }, grid: { display: false } },
-            y: { ticks: { color: '#9ca3af', callback: v => '$ ' + (v/1000000).toFixed(0) + 'M' }, grid: { color: '#1f2937' } }
+            x: { ticks: { color: '#64748b', font: { weight: '600' } }, grid: { display: false } },
+            y: { ticks: { color: '#94a3b8', callback: v => '$ ' + (v/1000000).toFixed(0) + 'M' }, grid: { color: '#f1f5f9' } }
+          },
+          onClick: (e, elements) => {
+            if (elements.length > 0) {
+              const index = elements[0].index;
+              const sucSeleccionada = labelsSuc[index];
+              estadoFiltros.sucursal = (estadoFiltros.sucursal === sucSeleccionada) ? "" : sucSeleccionada;
+              document.getElementById("filtroSucursal").value = estadoFiltros.sucursal;
+              aplicarFiltrosYActualizarTodo();
+            }
           }
         }
       });
 
-      // 3. Medios de Pago (Barra Horizontal)
+      // C. Agrupación por Medios de Pago
+      const pagoMap = {};
+      datos.forEach(c => {
+        pagoMap[c.forma_pago] = (pagoMap[c.forma_pago] || 0) + Number(c.monto_pagado || 0);
+      });
+      const labelsPago = Object.keys(pagoMap);
+      const dataPago = Object.values(pagoMap);
+
       const ctxPagos = document.getElementById("chartPagos").getContext("2d");
       if (chartPagosInst) chartPagosInst.destroy();
       chartPagosInst = new Chart(ctxPagos, {
         type: 'bar',
         indexAxis: 'y',
         data: {
-          labels: data.recaudacion_por_medio_pago.map(p => p.forma_pago),
+          labels: labelsPago,
           datasets: [{
-            label: 'Recaudación',
-            data: data.recaudacion_por_medio_pago.map(p => p.total_recaudado),
-            backgroundColor: '#10b981',
-            borderRadius: 6
+            label: 'Total',
+            data: dataPago,
+            backgroundColor: labelsPago.map(p => p === estadoFiltros.pago ? '#047857' : '#10b981'),
+            borderRadius: 6,
+            barThickness: 20
           }]
         },
         options: {
@@ -428,44 +603,52 @@
           maintainAspectRatio: false,
           plugins: { legend: { display: false } },
           scales: {
-            x: { ticks: { color: '#9ca3af', callback: v => '$ ' + (v/1000000).toFixed(0) + 'M' }, grid: { color: '#1f2937' } },
-            y: { ticks: { color: '#9ca3af', font: { size: 11 } }, grid: { display: false } }
+            x: { ticks: { color: '#94a3b8', callback: v => '$ ' + (v/1000000).toFixed(0) + 'M' }, grid: { color: '#f1f5f9' } },
+            y: { ticks: { color: '#475569', font: { weight: '600' } }, grid: { display: false } }
+          },
+          onClick: (e, elements) => {
+            if (elements.length > 0) {
+              const index = elements[0].index;
+              const pagoSeleccionado = labelsPago[index];
+              estadoFiltros.pago = (estadoFiltros.pago === pagoSeleccionado) ? "" : pagoSeleccionado;
+              document.getElementById("filtroPago").value = estadoFiltros.pago;
+              aplicarFiltrosYActualizarTodo();
+            }
           }
         }
       });
-    }
 
-    function generarEvolucionMensual(cobros) {
+      // D. Evolución Temporal (Mensual)
       const mesesMap = {};
-      cobros.forEach(c => {
-        const mes = c.fecha_pago.substring(0, 7); // YYYY-MM
-        mesesMap[mes] = (mesesMap[mes] || 0) + c.monto_pagado;
+      datos.forEach(c => {
+        const mes = c.fecha_pago ? c.fecha_pago.substring(0, 7) : "2024-01";
+        mesesMap[mes] = (mesesMap[mes] || 0) + Number(c.monto_pagado || 0);
       });
-
       const mesesOrdenados = Object.keys(mesesMap).sort();
-      const valores = mesesOrdenados.map(m => mesesMap[m]);
+      const valoresMeses = mesesOrdenados.map(m => mesesMap[m]);
 
       const ctxEvo = document.getElementById("chartEvolucion").getContext("2d");
       if (chartEvolucionInst) chartEvolucionInst.destroy();
 
-      const gradient = ctxEvo.createLinearGradient(0, 0, 0, 300);
-      gradient.addColorStop(0, 'rgba(16, 185, 129, 0.4)');
-      gradient.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
+      const gradient = ctxEvo.createLinearGradient(0, 0, 0, 280);
+      gradient.addColorStop(0, 'rgba(99, 102, 241, 0.25)');
+      gradient.addColorStop(1, 'rgba(99, 102, 241, 0.0)');
 
       chartEvolucionInst = new Chart(ctxEvo, {
         type: 'line',
         data: {
           labels: mesesOrdenados,
           datasets: [{
-            label: 'Facturación Mensual',
-            data: valores,
-            borderColor: '#10b981',
+            label: 'Ingreso Mensual',
+            data: valoresMeses,
+            borderColor: '#6366f1',
             backgroundColor: gradient,
             borderWidth: 3,
             fill: true,
             tension: 0.35,
-            pointBackgroundColor: '#10b981',
-            pointRadius: 4
+            pointBackgroundColor: '#6366f1',
+            pointRadius: 4,
+            pointHoverRadius: 7
           }]
         },
         options: {
@@ -480,114 +663,173 @@
             }
           },
           scales: {
-            x: { ticks: { color: '#9ca3af' }, grid: { color: '#1f2937' } },
-            y: { ticks: { color: '#9ca3af', callback: v => '$ ' + (v/1000000).toFixed(1) + 'M' }, grid: { color: '#1f2937' } }
+            x: { ticks: { color: '#64748b' }, grid: { display: false } },
+            y: { ticks: { color: '#94a3b8', callback: v => '$ ' + (v/1000000).toFixed(1) + 'M' }, grid: { color: '#f1f5f9' } }
           }
         }
       });
     }
 
-    // TABLA Y FILTROS
-    function renderizarTabla() {
+    // 3. ACTUALIZAR TABLA
+    function actualizarTabla() {
       const inicio = (paginaActual - 1) * porPagina;
       const fin = inicio + porPagina;
-      const paginaDatos = cobrosFiltrados.slice(inicio, fin);
+      const paginaDatos = datasetFiltrado.slice(inicio, fin);
 
       const tbody = document.getElementById("tablaCuerpo");
       if (paginaDatos.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="10" class="text-center py-6 text-gray-500">No se encontraron registros con los filtros seleccionados</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="10" class="text-center py-10 text-slate-400 font-medium">No se encontraron cobros con los filtros seleccionados</td></tr>`;
+        document.getElementById("tablaResumenFilas").innerText = "0 registros";
+        document.getElementById("tablaContador").innerText = "Mostrando 0 registros";
+        document.getElementById("btnAnt").disabled = true;
+        document.getElementById("btnSig").disabled = true;
         return;
       }
 
       tbody.innerHTML = paginaDatos.map(c => `
-        <tr class="hover:bg-gray-800/50 transition">
-          <td class="px-4 py-3 font-mono text-gray-400">${c.nro_recibo}</td>
-          <td class="px-4 py-3">${c.fecha_pago}</td>
-          <td class="px-4 py-3 font-mono">${c.dni_socio}</td>
-          <td class="px-4 py-3 font-semibold text-white">${c.nombre_socio}</td>
-          <td class="px-4 py-3">${c.edad}</td>
-          <td class="px-4 py-3"><span class="px-2 py-0.5 rounded text-[11px] bg-gray-800 text-emerald-400 font-semibold border border-emerald-500/20">${c.plan_membresia}</span></td>
-          <td class="px-4 py-3 text-gray-300">${c.sucursal}</td>
-          <td class="px-4 py-3 text-right font-bold text-white">$ ${Number(c.monto_pagado).toLocaleString('es-AR')}</td>
-          <td class="px-4 py-3 text-gray-400">${c.forma_pago}</td>
+        <tr class="hover:bg-slate-50/80 transition">
+          <td class="px-4 py-3 font-mono font-medium text-slate-500">${c.nro_recibo}</td>
+          <td class="px-4 py-3 font-medium text-slate-600">${c.fecha_pago}</td>
+          <td class="px-4 py-3 font-mono text-slate-500">${c.dni_socio}</td>
+          <td class="px-4 py-3 font-bold text-slate-900">${c.nombre_socio}</td>
+          <td class="px-4 py-3 text-center text-slate-600 font-semibold">${c.edad}</td>
+          <td class="px-4 py-3"><span class="px-2.5 py-0.5 rounded-md text-[11px] bg-indigo-50 text-indigo-700 font-bold border border-indigo-200/80">${c.plan_membresia}</span></td>
+          <td class="px-4 py-3 text-slate-700 font-medium">${c.sucursal}</td>
+          <td class="px-4 py-3 text-right font-extrabold text-slate-900">$ ${Number(c.monto_pagado).toLocaleString('es-AR')}</td>
+          <td class="px-4 py-3 text-slate-500 font-medium">${c.forma_pago}</td>
           <td class="px-4 py-3 text-center">
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold ${
-              c.estado_membresia === 'Activo' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
-              c.estado_membresia === 'Moroso' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' :
-              'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+              c.estado_membresia === 'Activo' ? 'bg-emerald-100 text-emerald-800' :
+              c.estado_membresia === 'Moroso' ? 'bg-amber-100 text-amber-800' :
+              'bg-rose-100 text-rose-800'
             }">${c.estado_membresia}</span>
           </td>
         </tr>
       `).join("");
 
-      document.getElementById("tablaContador").innerText = `Mostrando ${inicio + 1} a ${Math.min(fin, cobrosFiltrados.length)} de ${cobrosFiltrados.length} registros`;
+      document.getElementById("tablaResumenFilas").innerText = `${datasetFiltrado.length.toLocaleString("es-AR")} cobros encontrados`;
+      document.getElementById("tablaContador").innerText = `Mostrando ${inicio + 1} a ${Math.min(fin, datasetFiltrado.length)} de ${datasetFiltrado.length.toLocaleString("es-AR")} registros`;
       document.getElementById("btnAnt").disabled = paginaActual <= 1;
-      document.getElementById("btnSig").disabled = fin >= cobrosFiltrados.length;
+      document.getElementById("btnSig").disabled = fin >= datasetFiltrado.length;
     }
 
     function cambiarPagina(delta) {
       paginaActual += delta;
-      renderizarTabla();
+      actualizarTabla();
     }
 
-    // Eventos de filtro
-    function aplicarFiltros() {
-      const q = document.getElementById("filtroBuscador").value.toLowerCase().trim();
-      const suc = document.getElementById("filtroSucursal").value;
-      const plan = document.getElementById("filtroPlan").value;
-
-      cobrosFiltrados = todosLosCobros.filter(c => {
-        const matchQ = !q || c.nombre_socio.toLowerCase().includes(q) || c.dni_socio.includes(q);
-        const matchSuc = !suc || c.sucursal === suc;
-        const matchPlan = !plan || c.plan_membresia === plan;
-        return matchQ && matchSuc && matchPlan;
-      });
-
-      paginaActual = 1;
-      renderizarTabla();
+    // EVENTOS DE FILTROS DESDE LOS SELECTS
+    function aplicarFiltrosDesdeSelect() {
+      estadoFiltros.sucursal = document.getElementById("filtroSucursal").value;
+      estadoFiltros.plan = document.getElementById("filtroPlan").value;
+      estadoFiltros.pago = document.getElementById("filtroPago").value;
+      estadoFiltros.estado = document.getElementById("filtroEstado").value;
+      aplicarFiltrosYActualizarTodo();
     }
 
-    document.getElementById("filtroBuscador").addEventListener("input", aplicarFiltros);
-    document.getElementById("filtroSucursal").addEventListener("change", aplicarFiltros);
-    document.getElementById("filtroPlan").addEventListener("change", aplicarFiltros);
+    document.getElementById("filtroBuscador").addEventListener("input", (e) => {
+      estadoFiltros.busqueda = e.target.value;
+      aplicarFiltrosYActualizarTodo();
+    });
 
-    function cargarDatosDemo() {
-      const demoData = {
-        metricas_generales: {
-          total_transacciones: 12000,
-          total_socios_unicos: 3826,
-          facturacion_total: 242002400.0,
-          ticket_promedio: 20166.87,
-          edad_promedio: 41.9
-        },
-        recaudacion_por_plan: [
-          { plan_membresia: "Musculación", total_recaudado: 110500000 },
-          { plan_membresia: "Pase Libre", total_recaudado: 72400000 },
-          { plan_membresia: "CrossFit", total_recaudado: 38200000 },
-          { plan_membresia: "Funcional", total_recaudado: 14100000 },
-          { plan_membresia: "Spinning", total_recaudado: 6802400 }
-        ],
-        recaudacion_por_sucursal: [
-          { sucursal: "Sede Centro", total_recaudado: 125000000 },
-          { sucursal: "Sede Norte", total_recaudado: 64000000 },
-          { sucursal: "Sede Sur", total_recaudado: 37000000 },
-          { sucursal: "Sede Oeste", total_recaudado: 16002400 }
-        ],
-        recaudacion_por_medio_pago: [
-          { forma_pago: "Efectivo", total_recaudado: 105000000 },
-          { forma_pago: "Mercado Pago", total_recaudado: 89000000 },
-          { forma_pago: "Transferencia", total_recaudado: 28000000 },
-          { forma_pago: "Tarjeta Débito", total_recaudado: 12000000 },
-          { forma_pago: "Tarjeta Crédito", total_recaudado: 8002400 }
-        ]
-      };
-      renderizarKpis(demoData);
-      renderizarGraficos(demoData);
+    // ACTUALIZAR BADGES Y CHIPS ACTIVOS
+    function actualizarUIFiltros() {
+      const chipsList = document.getElementById("chipsList");
+      const chipsContainer = document.getElementById("chipsContainer");
+      const btnReset = document.getElementById("btnResetGlobal");
+      
+      let activos = [];
+
+      if (estadoFiltros.sucursal) activos.push({ tipo: "sucursal", label: `🏢 Sede: ${estadoFiltros.sucursal}` });
+      if (estadoFiltros.plan) activos.push({ tipo: "plan", label: `🏋️ Plan: ${estadoFiltros.plan}` });
+      if (estadoFiltros.pago) activos.push({ tipo: "pago", label: `💳 Pago: ${estadoFiltros.pago}` });
+      if (estadoFiltros.estado) activos.push({ tipo: "estado", label: `🟢 Estado: ${estadoFiltros.estado}` });
+      if (estadoFiltros.busqueda) activos.push({ tipo: "busqueda", label: `🔍 "${estadoFiltros.busqueda}"` });
+
+      // Badges en encabezados de los gráficos
+      document.getElementById("badgeFiltroPlan").className = estadoFiltros.plan ? "text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-bold" : "hidden";
+      document.getElementById("badgeFiltroSucursal").className = estadoFiltros.sucursal ? "text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-bold" : "hidden";
+      document.getElementById("badgeFiltroPago").className = estadoFiltros.pago ? "text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-bold" : "hidden";
+
+      if (activos.length > 0) {
+        chipsContainer.classList.remove("hidden");
+        btnReset.classList.remove("hidden");
+        document.getElementById("cantFiltrosActivos").innerText = activos.length;
+
+        chipsList.innerHTML = activos.map(a => `
+          <button onclick="removerFiltro('${a.tipo}')" class="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-indigo-100 hover:bg-indigo-200 text-indigo-800 text-xs font-semibold transition">
+            <span>${a.label}</span>
+            <i data-lucide="x" class="w-3 h-3 text-indigo-600"></i>
+          </button>
+        `).join("");
+        lucide.createIcons();
+      } else {
+        chipsContainer.classList.add("hidden");
+        btnReset.classList.add("hidden");
+      }
     }
 
-    // Inicio automático al cargar la página
+    function removerFiltro(tipo) {
+      if (tipo === "busqueda") {
+        estadoFiltros.busqueda = "";
+        document.getElementById("filtroBuscador").value = "";
+      } else if (tipo === "sucursal") {
+        estadoFiltros.sucursal = "";
+        document.getElementById("filtroSucursal").value = "";
+      } else if (tipo === "plan") {
+        estadoFiltros.plan = "";
+        document.getElementById("filtroPlan").value = "";
+      } else if (tipo === "pago") {
+        estadoFiltros.pago = "";
+        document.getElementById("filtroPago").value = "";
+      } else if (tipo === "estado") {
+        estadoFiltros.estado = "";
+        document.getElementById("filtroEstado").value = "";
+      }
+      aplicarFiltrosYActualizarTodo();
+    }
+
+    function resetearFiltros() {
+      estadoFiltros = { busqueda: "", sucursal: "", plan: "", pago: "", estado: "" };
+      document.getElementById("filtroBuscador").value = "";
+      document.getElementById("filtroSucursal").value = "";
+      document.getElementById("filtroPlan").value = "";
+      document.getElementById("filtroPago").value = "";
+      document.getElementById("filtroEstado").value = "";
+      aplicarFiltrosYActualizarTodo();
+    }
+
+    // GENERADOR DE DATOS DE DEMOSTRACIÓN (FALLBACK OFFLINE)
+    function generarDatasetDemo() {
+      const planes = ["Musculación", "Pase Libre", "CrossFit", "Funcional", "Spinning"];
+      const sucursales = ["Sede Centro", "Sede Norte", "Sede Sur", "Sede Oeste"];
+      const pagos = ["Efectivo", "Mercado Pago", "Transferencia", "Tarjeta Débito", "Tarjeta Crédito"];
+      const estados = ["Activo", "Activo", "Activo", "Moroso", "Inactivo"];
+      const nombres = ["Santiago Gomez", "Mateo Benitez", "Lucas Diaz", "Joaquin Flores", "Carolina Perez", "Maria Juarez", "Franco Rodriguez", "Facundo Fernandez", "Nicolas Alvarez", "Sofia Cabrera"];
+      
+      const records = [];
+      for (let i = 1; i <= 600; i++) {
+        const plan = planes[i % planes.length];
+        const precioBase = plan === "Pase Libre" ? 25000 : plan === "CrossFit" ? 22000 : plan === "Musculación" ? 18000 : 16000;
+        const mes = String(1 + (i % 12)).padStart(2, '0');
+        records.push({
+          id: i,
+          nro_recibo: `REC-2024-${String(i).padStart(6, '0')}`,
+          fecha_pago: `2024-${mes}-${String(1 + (i % 28)).padStart(2, '0')}`,
+          dni_socio: String(38000000 + i * 7),
+          nombre_socio: nombres[i % nombres.length] + ` #${i}`,
+          edad: 20 + (i % 45),
+          plan_membresia: plan,
+          sucursal: sucursales[i % sucursales.length],
+          monto_pagado: precioBase + (i % 5) * 500,
+          forma_pago: pagos[i % pagos.length],
+          estado_membresia: estados[i % estados.length]
+        });
+      }
+      return records;
+    }
+
     window.addEventListener("DOMContentLoaded", cargarTodo);
   </script>
 </body>
 </html>
-
