@@ -1,27 +1,20 @@
 import json
-from datetime import date
 from pathlib import Path
-from typing import List, Optional
-from fastapi import FastAPI, HTTPException, Query
+from typing import Optional
+from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, FileResponse
-from pydantic import BaseModel
-import pymysql
-from pymysql.cursors import DictCursor
-import uvicorn
+from fastapi.responses import HTMLResponse
 
 BASE_DIR = Path(__file__).resolve().parent
 
 # ============================================================
-# INSTANCIA DE FASTAPI
+# INSTANCIA FASTAPI
 # ============================================================
 app = FastAPI(
-    title="API de Gestión y Analítica - Gimnasio Fitness Pro",
-    description="API REST de alto rendimiento para analítica en tiempo real.",
+    title="Gimnasio Fitness Pro - API & Dashboard",
     version="2.0.0"
 )
 
-# CORS habilitado para Vercel y clientes externos
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -30,31 +23,33 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Configuración local de MySQL
+# Intentar importar pymysql de manera segura
+try:
+    import pymysql
+    from pymysql.cursors import DictCursor
+except Exception:
+    pymysql = None
+
 MYSQL_CONFIG = {
     "host": "127.0.0.1",
     "port": 3306,
     "user": "root",
     "password": "",
     "database": "bd_gimnasio",
-    "cursorclass": DictCursor,
     "connect_timeout": 2
 }
 
-def get_db_connection():
+def get_db():
+    if not pymysql:
+        return None
     try:
-        return pymysql.connect(**MYSQL_CONFIG)
+        return pymysql.connect(**MYSQL_CONFIG, cursorclass=DictCursor)
     except Exception:
         return None
 
-# Cargar datos de respaldo para cuando esté desplegado en la nube (Vercel)
-def get_demo_records():
-    demo_file = BASE_DIR / "cobros_demo.json"
-    if demo_file.exists():
-        with open(demo_file, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return []
-
+# ============================================================
+# DATOS DE RESPALDO (DEMO)
+# ============================================================
 DEMO_KPIS = {
     "metricas_generales": {
         "total_transacciones": 12000,
@@ -85,29 +80,43 @@ DEMO_KPIS = {
     ]
 }
 
+def cargar_demo_records():
+    for ruta in [BASE_DIR / "cobros_demo.json", BASE_DIR.parent / "cobros_demo.json"]:
+        if ruta.exists():
+            try:
+                with open(ruta, "r", encoding="utf-8") as f:
+                    return json.load(f)
+            except Exception:
+                pass
+    return []
+
 # ============================================================
-# ENDPOINTS
+# RUTAS HTML
 # ============================================================
+@app.get("/", response_class=HTMLResponse)
+@app.get("/dashboard", response_class=HTMLResponse)
+def index_page():
+    rutas = [
+        BASE_DIR / "index.html",
+        BASE_DIR.parent / "index.html",
+        BASE_DIR.parent / "dashboard.html"
+    ]
+    for r in rutas:
+        if r.exists():
+            try:
+                return HTMLResponse(content=r.read_text(encoding="utf-8"))
+            except Exception:
+                pass
+    return HTMLResponse(content="<h2>Fitness Pro Analytics Activo</h2>")
 
-@app.get("/", response_class=HTMLResponse, summary="Dashboard Web Principal")
-def ruta_raiz():
-    """Entrega el Dashboard web interactivo directamente en la raíz."""
-    html_file = BASE_DIR / "index.html"
-    if not html_file.exists():
-        html_file = BASE_DIR / "dashboard.html"
-    if html_file.exists():
-        return FileResponse(html_file)
-    return HTMLResponse("<h1>Fitness Pro Analytics en línea</h1>")
-
-@app.get("/dashboard", response_class=HTMLResponse, summary="Dashboard Web Analítico")
-def ver_dashboard():
-    return ruta_raiz()
-
-@app.get("/kpis/resumen", summary="Resumen ejecutivo y KPIs")
+# ============================================================
+# ENDPOINTS JSON
+# ============================================================
+@app.get("/kpis/resumen")
+@app.get("/api/kpis/resumen")
 def resumen_kpis():
-    conn = get_db_connection()
+    conn = get_db()
     if not conn:
-        # Modo fallback en la nube (Vercel)
         return DEMO_KPIS
     try:
         with conn.cursor() as cursor:
@@ -162,14 +171,20 @@ def resumen_kpis():
                 "recaudacion_por_sucursal": por_sucursal,
                 "recaudacion_por_medio_pago": por_pago
             }
+    except Exception:
+        return DEMO_KPIS
     finally:
-        conn.close()
+        try:
+            conn.close()
+        except Exception:
+            pass
 
-@app.get("/cobros/powerbi", summary="Endpoint para Power BI y analítica")
+@app.get("/cobros/powerbi")
+@app.get("/api/cobros/powerbi")
 def obtener_cobros_powerbi():
-    conn = get_db_connection()
+    conn = get_db()
     if not conn:
-        return get_demo_records()
+        return cargar_demo_records()
     try:
         with conn.cursor() as cursor:
             cursor.execute("""
@@ -182,19 +197,25 @@ def obtener_cobros_powerbi():
                 ORDER BY id ASC
             """)
             return cursor.fetchall()
+    except Exception:
+        return cargar_demo_records()
     finally:
-        conn.close()
+        try:
+            conn.close()
+        except Exception:
+            pass
 
-@app.get("/cobros", summary="Listar cobros con filtros")
+@app.get("/cobros")
+@app.get("/api/cobros")
 def listar_cobros(
     plan: Optional[str] = Query(None),
     sucursal: Optional[str] = Query(None),
     limit: int = Query(100, ge=1, le=2000),
     offset: int = Query(0, ge=0)
 ):
-    conn = get_db_connection()
+    conn = get_db()
     if not conn:
-        registros = get_demo_records()
+        registros = cargar_demo_records()
         if plan:
             registros = [r for r in registros if r.get("plan_membresia") == plan]
         if sucursal:
@@ -227,9 +248,10 @@ def listar_cobros(
         with conn.cursor() as cursor:
             cursor.execute(sql, tuple(parametros))
             return cursor.fetchall()
+    except Exception:
+        return cargar_demo_records()
     finally:
-        conn.close()
-
-if __name__ == "__main__":
-    uvicorn.run(app, host="127.0.0.1", port=8000)
-
+        try:
+            conn.close()
+        except Exception:
+            pass
