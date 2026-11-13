@@ -192,7 +192,7 @@ def obtener_cobros_powerbi():
             cursor.execute("""
                 SELECT 
                     id, nro_recibo, fecha_pago, dni_socio, nombre_socio,
-                    edad, plan_membresia, sucursal, 
+                    edad, sexo, plan_membresia, sucursal, 
                     CAST(monto_pagado AS DOUBLE) AS monto_pagado,
                     forma_pago, estado_membresia
                 FROM cobros_gimnasio
@@ -212,6 +212,7 @@ def obtener_cobros_powerbi():
 def listar_cobros(
     plan: Optional[str] = Query(None),
     sucursal: Optional[str] = Query(None),
+    sexo: Optional[str] = Query(None),
     limit: int = Query(100, ge=1, le=2000),
     offset: int = Query(0, ge=0)
 ):
@@ -222,6 +223,8 @@ def listar_cobros(
             registros = [r for r in registros if r.get("plan_membresia") == plan]
         if sucursal:
             registros = [r for r in registros if r.get("sucursal") == sucursal]
+        if sexo:
+            registros = [r for r in registros if r.get("sexo") == sexo]
         return registros[offset:offset + limit]
 
     try:
@@ -233,12 +236,15 @@ def listar_cobros(
         if sucursal:
             filtros.append("sucursal = %s")
             parametros.append(sucursal)
+        if sexo:
+            filtros.append("sexo = %s")
+            parametros.append(sexo)
 
         where = " WHERE " + " AND ".join(filtros) if filtros else ""
         sql = f"""
             SELECT 
                 id, nro_recibo, fecha_pago, dni_socio, nombre_socio,
-                edad, plan_membresia, sucursal,
+                edad, sexo, plan_membresia, sucursal,
                 CAST(monto_pagado AS DOUBLE) AS monto_pagado,
                 forma_pago, estado_membresia
             FROM cobros_gimnasio

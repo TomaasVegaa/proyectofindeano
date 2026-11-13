@@ -80,8 +80,8 @@
           <span id="statusText">Cargando datos...</span>
         </div>
 
-        <!-- Botón Reset Filtros -->
-        <button onclick="resetearFiltros()" id="btnResetGlobal" class="hidden flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 transition shadow-sm">
+        <!-- Botón Reset Filtros Global -->
+        <button onclick="resetearFiltros()" id="btnResetGlobal" class="hidden flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition shadow-sm">
           <i data-lucide="filter-x" class="w-3.5 h-3.5"></i>
           Quitar Filtros (<span id="cantFiltrosActivos">0</span>)
         </button>
@@ -106,7 +106,7 @@
         <div class="flex items-center gap-2 text-xs font-bold text-slate-700 uppercase tracking-wider">
           <i data-lucide="sliders-horizontal" class="w-4 h-4 text-indigo-600"></i>
           Filtros del Tablero
-          <span class="text-[11px] font-normal text-slate-400 capitalize">(Impacta en todos los gráficos y KPIs)</span>
+          <span class="text-[11px] font-normal text-slate-400 capitalize">(Impacta en todos los gráficos, KPIs y tabla)</span>
         </div>
 
         <button onclick="resetearFiltros()" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600 border border-slate-200 hover:border-rose-200 transition shadow-sm">
@@ -115,13 +115,13 @@
         </button>
       </div>
 
-      <!-- Controles de Filtros -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 pt-1">
+      <!-- Controles de Filtros en 7 Columnas -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 pt-1">
         
         <!-- Buscador -->
         <div class="relative">
           <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
-          <input type="text" id="filtroBuscador" placeholder="Buscar socio o DNI..." 
+          <input type="text" id="filtroBuscador" placeholder="Buscar socio, DNI..." 
             class="w-full pl-9 pr-3 py-2 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition font-medium">
         </div>
 
@@ -147,6 +147,16 @@
             <option value="CrossFit">CrossFit</option>
             <option value="Funcional">Funcional</option>
             <option value="Spinning">Spinning</option>
+          </select>
+        </div>
+
+        <!-- Filtro Sexo / Género -->
+        <div>
+          <select id="filtroSexo" onchange="aplicarFiltrosDesdeSelect()" 
+            class="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition font-medium">
+            <option value="">Todos los Géneros</option>
+            <option value="Femenino">Femenino</option>
+            <option value="Masculino">Masculino</option>
           </select>
         </div>
 
@@ -246,10 +256,10 @@
         </div>
       </div>
 
-      <!-- Edad Promedio -->
+      <!-- Edad y Distribución por Sexo -->
       <div class="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-sm hover:shadow-md transition">
         <div class="flex items-center justify-between mb-2">
-          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Edad Promedio</span>
+          <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Edad y Género</span>
           <div class="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
             <i data-lucide="activity" class="w-5 h-5"></i>
           </div>
@@ -257,23 +267,23 @@
         <div class="text-2xl lg:text-3xl font-extrabold text-slate-900 tracking-tight" id="kpiEdad">
           0 años
         </div>
-        <div class="mt-2 flex items-center gap-1.5 text-xs text-amber-600 font-medium">
-          <i data-lucide="heart-pulse" class="w-4 h-4"></i>
-          <span>Imputada por mediana estadística</span>
+        <div class="mt-2 flex items-center gap-1.5 text-xs text-amber-700 font-semibold" id="kpiSexoSub">
+          <i data-lucide="users-round" class="w-4 h-4"></i>
+          <span id="kpiSexoTexto">Calculando distribución...</span>
         </div>
       </div>
 
     </div>
 
-    <!-- GRID DE GRÁFICOS (4 CUADRANTES DEL PIZARRÓN) -->
+    <!-- CUADRÍCULA DE LOS 3 GRÁFICOS ANALÍTICOS -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-      <!-- Cuadrante 1: Gráfico de Donut (Planes de Membresía) -->
+      <!-- Cuadrante 1: Gráfico Donut (Planes) -->
       <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition flex flex-col">
         <div class="flex items-center justify-between mb-4">
           <div>
             <h3 class="text-base font-bold text-slate-900 flex items-center gap-1.5">
-              <span>Distribución por Plan</span>
+              <span>Ingresos por Plan</span>
               <span id="badgeFiltroPlan" class="hidden text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-bold">Filtrado</span>
             </h3>
             <p class="text-xs text-slate-500">Hacé clic en una porción para filtrar</p>
@@ -292,12 +302,12 @@
         <div class="flex items-center justify-between mb-4">
           <div>
             <h3 class="text-base font-bold text-slate-900 flex items-center gap-1.5">
-              <span>Facturación por Sucursal</span>
+              <span>Recaudación por Sede</span>
               <span id="badgeFiltroSucursal" class="hidden text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-bold">Filtrado</span>
             </h3>
-            <p class="text-xs text-slate-500">Hacé clic en una barra para filtrar por sede</p>
+            <p class="text-xs text-slate-500">Hacé clic en una barra para filtrar</p>
           </div>
-          <div class="p-2 rounded-xl bg-blue-50 text-blue-600">
+          <div class="p-2 rounded-xl bg-emerald-50 text-emerald-600">
             <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
           </div>
         </div>
@@ -331,8 +341,11 @@
     <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition">
       <div class="flex items-center justify-between mb-4">
         <div>
-          <h3 class="text-base font-bold text-slate-900">Evolución de Ingresos Mensuales</h3>
-          <p class="text-xs text-slate-500">Consolidado temporal de facturación a lo largo del tiempo</p>
+          <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+            <span>Evolución de Ingresos Mensuales</span>
+            <span id="badgeFiltroMes" class="hidden text-[10px] bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-bold">Mes seleccionado</span>
+          </h3>
+          <p class="text-xs text-slate-500">Hacé clic en cualquier punto del gráfico para filtrar la tabla por ese mes</p>
         </div>
         <div class="p-2 rounded-xl bg-purple-50 text-purple-600">
           <i data-lucide="line-chart" class="w-4 h-4"></i>
@@ -343,28 +356,32 @@
       </div>
     </div>
 
-    <!-- TABLA DE DETALLE INTERACTIVA (Cuadrante inferior derecho) -->
+    <!-- TABLA DE DETALLE INTERACTIVA (Cuadro de abajo) -->
     <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
       <div class="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h3 class="text-base font-bold text-slate-900">Registro Detallado de Cobros</h3>
-          <p class="text-xs text-slate-500">Transacciones sincronizadas con los filtros y selecciones de gráficos</p>
+          <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+            <span>Registro Detallado de Cobros</span>
+            <span id="tablaIndicadorFiltro" class="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200">En tiempo real</span>
+          </h3>
+          <p class="text-xs text-slate-500">Se sincroniza al instante con los filtros y selecciones de gráficos</p>
         </div>
-        <span id="tablaResumenFilas" class="text-xs font-semibold px-3 py-1 rounded-full bg-slate-100 text-slate-700">
+        <span id="tablaResumenFilas" class="text-xs font-bold px-3.5 py-1.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200 shadow-sm transition">
           Cargando registros...
         </span>
       </div>
 
-      <!-- Tabla Estilizada -->
+      <!-- Tabla Estilizada con Columna Sexo -->
       <div class="overflow-x-auto custom-scrollbar border border-slate-200 rounded-xl">
         <table class="w-full text-left text-xs text-slate-700">
-          <thead class="bg-slate-100/80 uppercase font-bold text-slate-500 border-b border-slate-200">
+          <thead class="bg-slate-100/90 uppercase font-bold text-slate-500 border-b border-slate-200">
             <tr>
               <th class="px-4 py-3">Recibo</th>
               <th class="px-4 py-3">Fecha</th>
               <th class="px-4 py-3">DNI</th>
               <th class="px-4 py-3">Socio</th>
               <th class="px-4 py-3 text-center">Edad</th>
+              <th class="px-4 py-3 text-center">Sexo</th>
               <th class="px-4 py-3">Plan</th>
               <th class="px-4 py-3">Sucursal</th>
               <th class="px-4 py-3 text-right">Monto</th>
@@ -374,7 +391,7 @@
           </thead>
           <tbody id="tablaCuerpo" class="divide-y divide-slate-100 font-medium">
             <tr>
-              <td colspan="10" class="text-center py-8 text-slate-400">Cargando datos...</td>
+              <td colspan="11" class="text-center py-8 text-slate-400">Cargando datos...</td>
             </tr>
           </tbody>
         </table>
@@ -392,18 +409,30 @@
 
   </main>
 
-  <!-- JAVASCRIPT: LÓGICA DE FILTRADO CRUZADO Y GRÁFICOS -->
+  <!-- JAVASCRIPT: LÓGICA DE FILTRADO CRUZADO, NORMALIZACIÓN Y ACTUALIZACIÓN -->
   <script>
     const esLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
     const API_BASE = esLocal ? "http://127.0.0.1:8000" : window.location.origin;
+
+    // Normalizador tolerante a tildes, mayúsculas y espacios
+    function normalizar(texto) {
+      return (texto || "")
+        .toString()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .trim();
+    }
 
     // Estado global de filtros
     let estadoFiltros = {
       busqueda: "",
       sucursal: "",
       plan: "",
+      sexo: "",
       pago: "",
-      estado: ""
+      estado: "",
+      mes: ""
     };
 
     let datasetCompleto = [];
@@ -447,18 +476,32 @@
 
     // APLICAR FILTROS GLOBALES
     function aplicarFiltrosYActualizarTodo() {
+      const q = normalizar(estadoFiltros.busqueda);
+      const selSuc = normalizar(estadoFiltros.sucursal);
+      const selPlan = normalizar(estadoFiltros.plan);
+      const selSexo = normalizar(estadoFiltros.sexo);
+      const selPago = normalizar(estadoFiltros.pago);
+      const selEst = normalizar(estadoFiltros.estado);
+      const selMes = estadoFiltros.mes;
+
       datasetFiltrado = datasetCompleto.filter(c => {
-        // Buscador texto (socio o dni)
-        const q = estadoFiltros.busqueda.toLowerCase().trim();
-        const matchQ = !q || c.nombre_socio.toLowerCase().includes(q) || c.dni_socio.toString().includes(q);
+        // Buscador texto amplio (socio, DNI, sucursal, plan, forma de pago)
+        const matchQ = !q || 
+          normalizar(c.nombre_socio).includes(q) || 
+          normalizar(c.dni_socio).includes(q) ||
+          normalizar(c.sucursal).includes(q) ||
+          normalizar(c.plan_membresia).includes(q) ||
+          normalizar(c.forma_pago).includes(q);
 
-        // Dropdowns / Selecciones en gráficos
-        const matchSuc = !estadoFiltros.sucursal || c.sucursal === estadoFiltros.sucursal;
-        const matchPlan = !estadoFiltros.plan || c.plan_membresia === estadoFiltros.plan;
-        const matchPago = !estadoFiltros.pago || c.forma_pago === estadoFiltros.pago;
-        const matchEst = !estadoFiltros.estado || c.estado_membresia === estadoFiltros.estado;
+        // Filtros específicos con normalización
+        const matchSuc = !selSuc || normalizar(c.sucursal) === selSuc;
+        const matchPlan = !selPlan || normalizar(c.plan_membresia) === selPlan;
+        const matchSexo = !selSexo || normalizar(c.sexo) === selSexo;
+        const matchPago = !selPago || normalizar(c.forma_pago) === selPago;
+        const matchEst = !selEst || normalizar(c.estado_membresia) === selEst;
+        const matchMes = !selMes || (c.fecha_pago && c.fecha_pago.startsWith(selMes));
 
-        return matchQ && matchSuc && matchPlan && matchPago && matchEst;
+        return matchQ && matchSuc && matchPlan && matchSexo && matchPago && matchEst && matchMes;
       });
 
       // 1. Recalcular KPIs
@@ -467,7 +510,7 @@
       // 2. Actualizar los 4 Gráficos
       actualizarGraficos(datasetFiltrado);
 
-      // 3. Actualizar Tabla
+      // 3. Actualizar la Tabla de abajo (inmediatamente)
       paginaActual = 1;
       actualizarTabla();
 
@@ -483,11 +526,18 @@
       const ticketPromedio = totalTransacciones > 0 ? (facturacionTotal / totalTransacciones) : 0;
       const edadPromedio = totalTransacciones > 0 ? (datos.reduce((acc, c) => acc + Number(c.edad || 0), 0) / totalTransacciones) : 0;
 
+      // Cálculo demográfico por sexo
+      const cantFem = datos.filter(c => normalizar(c.sexo) === "femenino").length;
+      const cantMasc = datos.filter(c => normalizar(c.sexo) === "masculino").length;
+      const porcFem = totalTransacciones > 0 ? Math.round((cantFem / totalTransacciones) * 100) : 0;
+      const porcMasc = totalTransacciones > 0 ? Math.round((cantMasc / totalTransacciones) * 100) : 0;
+
       document.getElementById("kpiFacturacion").innerText = "$ " + facturacionTotal.toLocaleString("es-AR", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
       document.getElementById("kpiSocios").innerText = sociosUnicos.toLocaleString("es-AR");
       document.getElementById("kpiTicket").innerText = "$ " + ticketPromedio.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       document.getElementById("kpiEdad").innerText = edadPromedio.toFixed(1) + " años";
       document.getElementById("kpiTransaccionesSub").innerText = `${totalTransacciones.toLocaleString("es-AR")} cuotas filtradas`;
+      document.getElementById("kpiSexoTexto").innerText = `${porcFem}% Mujeres · ${porcMasc}% Varones`;
     }
 
     // 2. ACTUALIZAR GRÁFICOS (CON INTERACCIÓN AL TOCAR)
@@ -495,7 +545,8 @@
       // A. Agrupación por Plan
       const planesMap = {};
       datos.forEach(c => {
-        planesMap[c.plan_membresia] = (planesMap[c.plan_membresia] || 0) + Number(c.monto_pagado || 0);
+        const p = c.plan_membresia || "Otro";
+        planesMap[p] = (planesMap[p] || 0) + Number(c.monto_pagado || 0);
       });
       const labelsPlanes = Object.keys(planesMap);
       const dataPlanes = Object.values(planesMap);
@@ -508,7 +559,7 @@
           labels: labelsPlanes,
           datasets: [{
             data: dataPlanes,
-            backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#06b6d4', '#f43f5e'],
+            backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#06b6d4', '#ec4899', '#8b5cf6'],
             borderWidth: 2,
             borderColor: '#ffffff',
             hoverOffset: 8
@@ -530,9 +581,8 @@
             if (elements.length > 0) {
               const index = elements[0].index;
               const planSeleccionado = labelsPlanes[index];
-              // Si ya estaba seleccionado, lo deselecciona (toggle)
-              estadoFiltros.plan = (estadoFiltros.plan === planSeleccionado) ? "" : planSeleccionado;
-              document.getElementById("filtroPlan").value = estadoFiltros.plan;
+              estadoFiltros.plan = (normalizar(estadoFiltros.plan) === normalizar(planSeleccionado)) ? "" : planSeleccionado;
+              sincronizarSelectConValor("filtroPlan", estadoFiltros.plan);
               aplicarFiltrosYActualizarTodo();
             }
           }
@@ -542,7 +592,8 @@
       // B. Agrupación por Sucursal
       const sucMap = {};
       datos.forEach(c => {
-        sucMap[c.sucursal] = (sucMap[c.sucursal] || 0) + Number(c.monto_pagado || 0);
+        const s = c.sucursal || "Otra";
+        sucMap[s] = (sucMap[s] || 0) + Number(c.monto_pagado || 0);
       });
       const labelsSuc = Object.keys(sucMap);
       const dataSuc = Object.values(sucMap);
@@ -556,7 +607,7 @@
           datasets: [{
             label: 'Recaudación',
             data: dataSuc,
-            backgroundColor: labelsSuc.map(s => s === estadoFiltros.sucursal ? '#4338ca' : '#6366f1'),
+            backgroundColor: labelsSuc.map(s => normalizar(s) === normalizar(estadoFiltros.sucursal) ? '#4338ca' : '#6366f1'),
             borderRadius: 8,
             barThickness: 36
           }]
@@ -573,8 +624,8 @@
             if (elements.length > 0) {
               const index = elements[0].index;
               const sucSeleccionada = labelsSuc[index];
-              estadoFiltros.sucursal = (estadoFiltros.sucursal === sucSeleccionada) ? "" : sucSeleccionada;
-              document.getElementById("filtroSucursal").value = estadoFiltros.sucursal;
+              estadoFiltros.sucursal = (normalizar(estadoFiltros.sucursal) === normalizar(sucSeleccionada)) ? "" : sucSeleccionada;
+              sincronizarSelectConValor("filtroSucursal", estadoFiltros.sucursal);
               aplicarFiltrosYActualizarTodo();
             }
           }
@@ -584,7 +635,8 @@
       // C. Agrupación por Medios de Pago
       const pagoMap = {};
       datos.forEach(c => {
-        pagoMap[c.forma_pago] = (pagoMap[c.forma_pago] || 0) + Number(c.monto_pagado || 0);
+        const p = c.forma_pago || "Otro";
+        pagoMap[p] = (pagoMap[p] || 0) + Number(c.monto_pagado || 0);
       });
       const labelsPago = Object.keys(pagoMap);
       const dataPago = Object.values(pagoMap);
@@ -599,7 +651,7 @@
           datasets: [{
             label: 'Total',
             data: dataPago,
-            backgroundColor: labelsPago.map(p => p === estadoFiltros.pago ? '#047857' : '#10b981'),
+            backgroundColor: labelsPago.map(p => normalizar(p) === normalizar(estadoFiltros.pago) ? '#047857' : '#10b981'),
             borderRadius: 6,
             barThickness: 20
           }]
@@ -616,8 +668,8 @@
             if (elements.length > 0) {
               const index = elements[0].index;
               const pagoSeleccionado = labelsPago[index];
-              estadoFiltros.pago = (estadoFiltros.pago === pagoSeleccionado) ? "" : pagoSeleccionado;
-              document.getElementById("filtroPago").value = estadoFiltros.pago;
+              estadoFiltros.pago = (normalizar(estadoFiltros.pago) === normalizar(pagoSeleccionado)) ? "" : pagoSeleccionado;
+              sincronizarSelectConValor("filtroPago", estadoFiltros.pago);
               aplicarFiltrosYActualizarTodo();
             }
           }
@@ -652,9 +704,11 @@
             borderWidth: 3,
             fill: true,
             tension: 0.35,
-            pointBackgroundColor: '#6366f1',
-            pointRadius: 4,
-            pointHoverRadius: 7
+            pointBackgroundColor: mesesOrdenados.map(m => m === estadoFiltros.mes ? '#ec4899' : '#6366f1'),
+            pointBorderColor: '#ffffff',
+            pointBorderWidth: 2,
+            pointRadius: mesesOrdenados.map(m => m === estadoFiltros.mes ? 8 : 4),
+            pointHoverRadius: 8
           }]
         },
         options: {
@@ -671,12 +725,20 @@
           scales: {
             x: { ticks: { color: '#64748b' }, grid: { display: false } },
             y: { ticks: { color: '#94a3b8', callback: v => '$ ' + (v/1000000).toFixed(1) + 'M' }, grid: { color: '#f1f5f9' } }
+          },
+          onClick: (e, elements) => {
+            if (elements.length > 0) {
+              const index = elements[0].index;
+              const mesSeleccionado = mesesOrdenados[index];
+              estadoFiltros.mes = (estadoFiltros.mes === mesSeleccionado) ? "" : mesSeleccionado;
+              aplicarFiltrosYActualizarTodo();
+            }
           }
         }
       });
     }
 
-    // 3. ACTUALIZAR TABLA
+    // 3. ACTUALIZAR TABLA DE ABAJO
     function actualizarTabla() {
       const inicio = (paginaActual - 1) * porPagina;
       const fin = inicio + porPagina;
@@ -684,8 +746,8 @@
 
       const tbody = document.getElementById("tablaCuerpo");
       if (paginaDatos.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="10" class="text-center py-10 text-slate-400 font-medium">No se encontraron cobros con los filtros seleccionados</td></tr>`;
-        document.getElementById("tablaResumenFilas").innerText = "0 registros";
+        tbody.innerHTML = `<tr><td colspan="11" class="text-center py-10 text-slate-400 font-medium">No se encontraron cobros con los filtros seleccionados</td></tr>`;
+        document.getElementById("tablaResumenFilas").innerText = "0 cobros encontrados";
         document.getElementById("tablaContador").innerText = "Mostrando 0 registros";
         document.getElementById("btnAnt").disabled = true;
         document.getElementById("btnSig").disabled = true;
@@ -693,27 +755,48 @@
       }
 
       tbody.innerHTML = paginaDatos.map(c => `
-        <tr class="hover:bg-slate-50/80 transition">
+        <tr class="hover:bg-indigo-50/40 transition">
           <td class="px-4 py-3 font-mono font-medium text-slate-500">${c.nro_recibo}</td>
           <td class="px-4 py-3 font-medium text-slate-600">${c.fecha_pago}</td>
           <td class="px-4 py-3 font-mono text-slate-500">${c.dni_socio}</td>
           <td class="px-4 py-3 font-bold text-slate-900">${c.nombre_socio}</td>
           <td class="px-4 py-3 text-center text-slate-600 font-semibold">${c.edad}</td>
-          <td class="px-4 py-3"><span class="px-2.5 py-0.5 rounded-md text-[11px] bg-indigo-50 text-indigo-700 font-bold border border-indigo-200/80">${c.plan_membresia}</span></td>
-          <td class="px-4 py-3 text-slate-700 font-medium">${c.sucursal}</td>
-          <td class="px-4 py-3 text-right font-extrabold text-slate-900">$ ${Number(c.monto_pagado).toLocaleString('es-AR')}</td>
-          <td class="px-4 py-3 text-slate-500 font-medium">${c.forma_pago}</td>
           <td class="px-4 py-3 text-center">
-            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-              c.estado_membresia === 'Activo' ? 'bg-emerald-100 text-emerald-800' :
-              c.estado_membresia === 'Moroso' ? 'bg-amber-100 text-amber-800' :
-              'bg-rose-100 text-rose-800'
-            }">${c.estado_membresia}</span>
+            <button onclick="toggleFiltroValor('sexo', '${c.sexo}')" title="Clic para filtrar por ${c.sexo}" class="px-2 py-0.5 rounded text-[11px] font-bold ${
+              normalizar(c.sexo) === 'femenino' ? 'bg-pink-100 text-pink-700 hover:bg-pink-200' : 'bg-sky-100 text-sky-700 hover:bg-sky-200'
+            } transition">
+              ${c.sexo || 'N/D'}
+            </button>
+          </td>
+          <td class="px-4 py-3">
+            <button onclick="toggleFiltroValor('plan', '${c.plan_membresia}')" title="Clic para filtrar por ${c.plan_membresia}" class="px-2.5 py-0.5 rounded-md text-[11px] bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold border border-indigo-200 transition">
+              ${c.plan_membresia}
+            </button>
+          </td>
+          <td class="px-4 py-3 text-slate-700 font-medium">
+            <button onclick="toggleFiltroValor('sucursal', '${c.sucursal}')" title="Clic para filtrar por ${c.sucursal}" class="hover:text-indigo-600 hover:underline transition">
+              ${c.sucursal}
+            </button>
+          </td>
+          <td class="px-4 py-3 text-right font-extrabold text-slate-900">$ ${Number(c.monto_pagado).toLocaleString('es-AR')}</td>
+          <td class="px-4 py-3 text-slate-500 font-medium">
+            <button onclick="toggleFiltroValor('pago', '${c.forma_pago}')" title="Clic para filtrar por ${c.forma_pago}" class="hover:text-emerald-600 transition">
+              ${c.forma_pago}
+            </button>
+          </td>
+          <td class="px-4 py-3 text-center">
+            <button onclick="toggleFiltroValor('estado', '${c.estado_membresia}')" class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+              c.estado_membresia === 'Activo' ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200' :
+              c.estado_membresia === 'Moroso' ? 'bg-amber-100 text-amber-800 hover:bg-amber-200' :
+              'bg-rose-100 text-rose-800 hover:bg-rose-200'
+            } transition">
+              ${c.estado_membresia}
+            </button>
           </td>
         </tr>
       `).join("");
 
-      document.getElementById("tablaResumenFilas").innerText = `${datasetFiltrado.length.toLocaleString("es-AR")} cobros encontrados`;
+      document.getElementById("tablaResumenFilas").innerText = `${datasetFiltrado.length.toLocaleString("es-AR")} cobros filtrados`;
       document.getElementById("tablaContador").innerText = `Mostrando ${inicio + 1} a ${Math.min(fin, datasetFiltrado.length)} de ${datasetFiltrado.length.toLocaleString("es-AR")} registros`;
       document.getElementById("btnAnt").disabled = paginaActual <= 1;
       document.getElementById("btnSig").disabled = fin >= datasetFiltrado.length;
@@ -724,10 +807,22 @@
       actualizarTabla();
     }
 
+    // Toggle interactivo desde las celdas de la tabla
+    function toggleFiltroValor(campo, valor) {
+      if (normalizar(estadoFiltros[campo]) === normalizar(valor)) {
+        estadoFiltros[campo] = "";
+      } else {
+        estadoFiltros[campo] = valor;
+      }
+      sincronizarTodosLosSelects();
+      aplicarFiltrosYActualizarTodo();
+    }
+
     // EVENTOS DE FILTROS DESDE LOS SELECTS
     function aplicarFiltrosDesdeSelect() {
       estadoFiltros.sucursal = document.getElementById("filtroSucursal").value;
       estadoFiltros.plan = document.getElementById("filtroPlan").value;
+      estadoFiltros.sexo = document.getElementById("filtroSexo").value;
       estadoFiltros.pago = document.getElementById("filtroPago").value;
       estadoFiltros.estado = document.getElementById("filtroEstado").value;
       aplicarFiltrosYActualizarTodo();
@@ -737,6 +832,31 @@
       estadoFiltros.busqueda = e.target.value;
       aplicarFiltrosYActualizarTodo();
     });
+
+    // Helper para mantener sincronizado el <select> cuando se hace clic en gráficos o tabla
+    function sincronizarSelectConValor(selectId, valor) {
+      const select = document.getElementById(selectId);
+      if (!select) return;
+      if (!valor) {
+        select.value = "";
+        return;
+      }
+      for (let i = 0; i < select.options.length; i++) {
+        if (normalizar(select.options[i].value) === normalizar(valor)) {
+          select.selectedIndex = i;
+          return;
+        }
+      }
+      select.value = "";
+    }
+
+    function sincronizarTodosLosSelects() {
+      sincronizarSelectConValor("filtroSucursal", estadoFiltros.sucursal);
+      sincronizarSelectConValor("filtroPlan", estadoFiltros.plan);
+      sincronizarSelectConValor("filtroSexo", estadoFiltros.sexo);
+      sincronizarSelectConValor("filtroPago", estadoFiltros.pago);
+      sincronizarSelectConValor("filtroEstado", estadoFiltros.estado);
+    }
 
     // ACTUALIZAR BADGES Y CHIPS ACTIVOS
     function actualizarUIFiltros() {
@@ -748,14 +868,17 @@
 
       if (estadoFiltros.sucursal) activos.push({ tipo: "sucursal", label: `Sede: ${estadoFiltros.sucursal}` });
       if (estadoFiltros.plan) activos.push({ tipo: "plan", label: `Plan: ${estadoFiltros.plan}` });
+      if (estadoFiltros.sexo) activos.push({ tipo: "sexo", label: `Género: ${estadoFiltros.sexo}` });
       if (estadoFiltros.pago) activos.push({ tipo: "pago", label: `Pago: ${estadoFiltros.pago}` });
       if (estadoFiltros.estado) activos.push({ tipo: "estado", label: `Estado: ${estadoFiltros.estado}` });
+      if (estadoFiltros.mes) activos.push({ tipo: "mes", label: `Mes: ${estadoFiltros.mes}` });
       if (estadoFiltros.busqueda) activos.push({ tipo: "busqueda", label: `"${estadoFiltros.busqueda}"` });
 
       // Badges en encabezados de los gráficos
       document.getElementById("badgeFiltroPlan").className = estadoFiltros.plan ? "text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-bold" : "hidden";
       document.getElementById("badgeFiltroSucursal").className = estadoFiltros.sucursal ? "text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-bold" : "hidden";
       document.getElementById("badgeFiltroPago").className = estadoFiltros.pago ? "text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-bold" : "hidden";
+      document.getElementById("badgeFiltroMes").className = estadoFiltros.mes ? "text-[10px] bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full font-bold" : "hidden";
 
       if (activos.length > 0) {
         chipsContainer.classList.remove("hidden");
@@ -785,21 +908,27 @@
       } else if (tipo === "plan") {
         estadoFiltros.plan = "";
         document.getElementById("filtroPlan").value = "";
+      } else if (tipo === "sexo") {
+        estadoFiltros.sexo = "";
+        document.getElementById("filtroSexo").value = "";
       } else if (tipo === "pago") {
         estadoFiltros.pago = "";
         document.getElementById("filtroPago").value = "";
       } else if (tipo === "estado") {
         estadoFiltros.estado = "";
         document.getElementById("filtroEstado").value = "";
+      } else if (tipo === "mes") {
+        estadoFiltros.mes = "";
       }
       aplicarFiltrosYActualizarTodo();
     }
 
     function resetearFiltros() {
-      estadoFiltros = { busqueda: "", sucursal: "", plan: "", pago: "", estado: "" };
+      estadoFiltros = { busqueda: "", sucursal: "", plan: "", sexo: "", pago: "", estado: "", mes: "" };
       document.getElementById("filtroBuscador").value = "";
       document.getElementById("filtroSucursal").value = "";
       document.getElementById("filtroPlan").value = "";
+      document.getElementById("filtroSexo").value = "";
       document.getElementById("filtroPago").value = "";
       document.getElementById("filtroEstado").value = "";
       aplicarFiltrosYActualizarTodo();
@@ -811,20 +940,24 @@
       const sucursales = ["Sede Centro", "Sede Norte", "Sede Sur", "Sede Oeste"];
       const pagos = ["Efectivo", "Mercado Pago", "Transferencia", "Tarjeta Débito", "Tarjeta Crédito"];
       const estados = ["Activo", "Activo", "Activo", "Moroso", "Inactivo"];
-      const nombres = ["Santiago Gomez", "Mateo Benitez", "Lucas Diaz", "Joaquin Flores", "Carolina Perez", "Maria Juarez", "Franco Rodriguez", "Facundo Fernandez", "Nicolas Alvarez", "Sofia Cabrera"];
+      const nombresMasc = ["Santiago Gomez", "Mateo Benitez", "Lucas Diaz", "Joaquin Flores", "Franco Rodriguez", "Facundo Fernandez", "Nicolas Alvarez"];
+      const nombresFem = ["Carolina Perez", "Maria Juarez", "Sofia Cabrera", "Camila Pereyra", "Martina Romero", "Lucia Fernandez", "Valentina Diaz"];
       
       const records = [];
       for (let i = 1; i <= 600; i++) {
+        const esFem = (i % 2 === 0);
         const plan = planes[i % planes.length];
         const precioBase = plan === "Pase Libre" ? 25000 : plan === "CrossFit" ? 22000 : plan === "Musculación" ? 18000 : 16000;
         const mes = String(1 + (i % 12)).padStart(2, '0');
+        const listaNombres = esFem ? nombresFem : nombresMasc;
         records.push({
           id: i,
           nro_recibo: `REC-2024-${String(i).padStart(6, '0')}`,
           fecha_pago: `2024-${mes}-${String(1 + (i % 28)).padStart(2, '0')}`,
           dni_socio: String(38000000 + i * 7),
-          nombre_socio: nombres[i % nombres.length] + ` #${i}`,
+          nombre_socio: listaNombres[i % listaNombres.length] + ` #${i}`,
           edad: 20 + (i % 45),
+          sexo: esFem ? "Femenino" : "Masculino",
           plan_membresia: plan,
           sucursal: sucursales[i % sucursales.length],
           monto_pagado: precioBase + (i % 5) * 500,

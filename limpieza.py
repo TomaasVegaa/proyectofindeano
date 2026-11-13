@@ -269,17 +269,41 @@ df.loc[recibos_faltantes, "Nro_Recibo"] = [
 df["Nro_Recibo"] = df["Nro_Recibo"].astype(str).str.strip()
 
 # ============================================================
-# 9. ORDEN Y FORMATO FINAL
+# 9. GÉNERO / SEXO
+# ============================================================
+print("\n9. Estandarizando y limpiando género/sexo...")
+if "Sexo" not in df.columns:
+    df["Sexo"] = "Masculino"
+
+def normalizar_sexo(val):
+    if pd.isna(val):
+        return np.nan
+    s = str(val).strip().upper()
+    if s in ["M", "MASC", "MASCULINO", "HOMBRE"]:
+        return "Masculino"
+    elif s in ["F", "FEM", "FEMENINO", "MUJER"]:
+        return "Femenino"
+    return np.nan
+
+sexo_limpio = df["Sexo"].apply(normalizar_sexo)
+moda_sexo = sexo_limpio.dropna().mode()[0] if not sexo_limpio.dropna().empty else "Masculino"
+cant_sexo_imputados = int(sexo_limpio.isna().sum())
+sexo_limpio = sexo_limpio.fillna(moda_sexo)
+df["Sexo"] = sexo_limpio
+print(f"   -> Géneros anómalos o nulos imputados por moda ('{moda_sexo}'): {cant_sexo_imputados:,}")
+
+# ============================================================
+# 10. ORDEN Y FORMATO FINAL
 # ============================================================
 orden_columnas = [
     "Nro_Recibo", "Fecha_Pago", "DNI_Socio", "Nombre_Completo",
-    "Edad", "Plan_Membresia", "Sucursal", "Monto_Pagado",
+    "Edad", "Sexo", "Plan_Membresia", "Sucursal", "Monto_Pagado",
     "Forma_Pago", "Estado_Membresia"
 ]
 df = df[orden_columnas]
 
 # ============================================================
-# 10. GENERACIÓN DEL REPORTE DE AUDITORÍA
+# 11. GENERACIÓN DEL REPORTE DE AUDITORÍA
 # ============================================================
 reporte = pd.DataFrame({
     "Indicador de Calidad": [
@@ -296,7 +320,8 @@ reporte = pd.DataFrame({
         "11. Montos incorrectos o negativos corregidos",
         "12. Método de imputación para montos",
         "13. Recibos autogenerados por ausencia",
-        "14. Método de estandarización categórica"
+        "14. Géneros normalizados / imputados",
+        "15. Método de estandarización categórica"
     ],
     "Resultado Obtenido": [
         f"{filas_iniciales:,}",
@@ -312,14 +337,15 @@ reporte = pd.DataFrame({
         f"{cant_montos_corregidos:,}",
         f"Mediana (${mediana_monto:,.2f})",
         f"{cant_recibos_generados:,}",
+        f"{cant_sexo_imputados:,} imputados por moda ({moda_sexo})",
         "Diccionarios de Homologación + Moda"
     ]
 })
 
 # ============================================================
-# 11. GUARDAR EN EXCEL LIMPIO (CON 2 HOJAS)
+# 12. GUARDAR EN EXCEL LIMPIO (CON 2 HOJAS)
 # ============================================================
-print(f"\n11. Guardando archivo limpio en: {ARCHIVO_SALIDA.name}...")
+print(f"\n12. Guardando archivo limpio en: {ARCHIVO_SALIDA.name}...")
 with pd.ExcelWriter(ARCHIVO_SALIDA, engine="openpyxl") as writer:
     df.to_excel(writer, sheet_name="Cobros_Gimnasio_Limpio", index=False)
     reporte.to_excel(writer, sheet_name="Auditoria_Limpieza", index=False)

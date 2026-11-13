@@ -62,14 +62,16 @@ try:
 
     # 4. CREACIÓN DE LA TABLA CON TIPOS DE DATOS E ÍNDICES ÓPTIMOS
     print(f"\n3. Configurando tabla `{TABLA}` con índices de optimización...")
+    cursor.execute(f"DROP TABLE IF EXISTS `{TABLA}`;")
     sql_tabla = f"""
-    CREATE TABLE IF NOT EXISTS `{TABLA}` (
+    CREATE TABLE `{TABLA}` (
         id INT AUTO_INCREMENT PRIMARY KEY,
         nro_recibo VARCHAR(40) NOT NULL UNIQUE,
         fecha_pago DATE NOT NULL,
         dni_socio VARCHAR(20) NOT NULL,
         nombre_socio VARCHAR(150) NOT NULL,
         edad INT NOT NULL,
+        sexo VARCHAR(20) NOT NULL,
         plan_membresia VARCHAR(50) NOT NULL,
         sucursal VARCHAR(50) NOT NULL,
         monto_pagado DECIMAL(10,2) NOT NULL,
@@ -78,7 +80,8 @@ try:
         INDEX idx_fecha (fecha_pago),
         INDEX idx_plan (plan_membresia),
         INDEX idx_sucursal (sucursal),
-        INDEX idx_socio (dni_socio)
+        INDEX idx_socio (dni_socio),
+        INDEX idx_sexo (sexo)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     """
     cursor.execute(sql_tabla)
@@ -94,6 +97,7 @@ try:
     df["Monto_Pagado"] = df["Monto_Pagado"].astype(float)
     df["DNI_Socio"] = df["DNI_Socio"].astype(str)
     df["Nro_Recibo"] = df["Nro_Recibo"].astype(str)
+    df["Sexo"] = df["Sexo"].astype(str)
 
     valores = [
         (
@@ -102,6 +106,7 @@ try:
             fila["DNI_Socio"],
             fila["Nombre_Completo"],
             fila["Edad"],
+            fila["Sexo"],
             fila["Plan_Membresia"],
             fila["Sucursal"],
             fila["Monto_Pagado"],
@@ -114,14 +119,15 @@ try:
     # 6. INSERCIÓN MASIVA EFICIENTE (BATCH INSERT CON ON DUPLICATE KEY UPDATE)
     sql_insert = f"""
     INSERT INTO `{TABLA}` (
-        nro_recibo, fecha_pago, dni_socio, nombre_socio, edad,
+        nro_recibo, fecha_pago, dni_socio, nombre_socio, edad, sexo,
         plan_membresia, sucursal, monto_pagado, forma_pago, estado_membresia
-    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
     ON DUPLICATE KEY UPDATE
         fecha_pago = VALUES(fecha_pago),
         dni_socio = VALUES(dni_socio),
         nombre_socio = VALUES(nombre_socio),
         edad = VALUES(edad),
+        sexo = VALUES(sexo),
         plan_membresia = VALUES(plan_membresia),
         sucursal = VALUES(sucursal),
         monto_pagado = VALUES(monto_pagado),
