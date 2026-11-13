@@ -1,27 +1,27 @@
+import json
 from datetime import date
 from pathlib import Path
 from typing import List, Optional
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, FileResponse
+from pydantic import BaseModel
 import pymysql
 from pymysql.cursors import DictCursor
-from pydantic import BaseModel
 import uvicorn
 
+BASE_DIR = Path(__file__).resolve().parent
+
 # ============================================================
-# INSTANCIA DE FASTAPI Y METADATOS
+# INSTANCIA DE FASTAPI
 # ============================================================
 app = FastAPI(
     title="API de Gestión y Analítica - Gimnasio Fitness Pro",
-    description=(
-        "API REST de alto rendimiento que conecta la base de datos MySQL "
-        "con Power BI y dashboards ejecutivos."
-    ),
+    description="API REST de alto rendimiento para analítica en tiempo real.",
     version="2.0.0"
 )
 
-# Habilitar CORS para permitir consumo desde navegadores o clientes externos
+# CORS habilitado para Vercel y clientes externos
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -30,7 +30,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Configuración de conexión MySQL
+# Configuración local de MySQL
 MYSQL_CONFIG = {
     "host": "127.0.0.1",
     "port": 3306,
@@ -38,132 +38,79 @@ MYSQL_CONFIG = {
     "password": "",
     "database": "bd_gimnasio",
     "cursorclass": DictCursor,
-    "connect_timeout": 5
+    "connect_timeout": 2
 }
 
 def get_db_connection():
     try:
         return pymysql.connect(**MYSQL_CONFIG)
-    except pymysql.MySQLError as e:
-        raise HTTPException(status_code=500, detail=f"Error conectando a MySQL: {e}")
+    except Exception:
+        return None
 
-# ============================================================
-# MODELOS DE RESPUESTA (PYDANTIC)
-# ============================================================
-class Cobro(BaseModel):
-    id: int
-    nro_recibo: str
-    fecha_pago: date
-    dni_socio: str
-    nombre_socio: str
-    edad: int
-    plan_membresia: str
-    sucursal: str
-    monto_pagado: float
-    forma_pago: str
-    estado_membresia: str
+# Cargar datos de respaldo para cuando esté desplegado en la nube (Vercel)
+def get_demo_records():
+    demo_file = BASE_DIR / "cobros_demo.json"
+    if demo_file.exists():
+        with open(demo_file, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return []
+
+DEMO_KPIS = {
+    "metricas_generales": {
+        "total_transacciones": 12000,
+        "total_socios_unicos": 3826,
+        "facturacion_total": 242002400.0,
+        "ticket_promedio": 20166.87,
+        "edad_promedio": 41.9
+    },
+    "recaudacion_por_plan": [
+        {"plan_membresia": "Musculación", "total_recaudado": 110500000.0, "cantidad_cobros": 5480, "porcentaje_participacion": 45.67},
+        {"plan_membresia": "Pase Libre", "total_recaudado": 72400000.0, "cantidad_cobros": 2896, "porcentaje_participacion": 24.13},
+        {"plan_membresia": "CrossFit", "total_recaudado": 38200000.0, "cantidad_cobros": 1736, "porcentaje_participacion": 14.47},
+        {"plan_membresia": "Funcional", "total_recaudado": 14100000.0, "cantidad_cobros": 881, "porcentaje_participacion": 7.34},
+        {"plan_membresia": "Spinning", "total_recaudado": 6802400.0, "cantidad_cobros": 453, "porcentaje_participacion": 3.78}
+    ],
+    "recaudacion_por_sucursal": [
+        {"sucursal": "Sede Centro", "total_recaudado": 125000000.0, "cantidad_cobros": 6200},
+        {"sucursal": "Sede Norte", "total_recaudado": 64000000.0, "cantidad_cobros": 3173},
+        {"sucursal": "Sede Sur", "total_recaudado": 37000000.0, "cantidad_cobros": 1834},
+        {"sucursal": "Sede Oeste", "total_recaudado": 16002400.0, "cantidad_cobros": 793}
+    ],
+    "recaudacion_por_medio_pago": [
+        {"forma_pago": "Efectivo", "total_recaudado": 105000000.0, "cantidad_cobros": 5206},
+        {"forma_pago": "Mercado Pago", "total_recaudado": 89000000.0, "cantidad_cobros": 4413},
+        {"forma_pago": "Transferencia", "total_recaudado": 28000000.0, "cantidad_cobros": 1388},
+        {"forma_pago": "Tarjeta Débito", "total_recaudado": 12000000.0, "cantidad_cobros": 595},
+        {"forma_pago": "Tarjeta Crédito", "total_recaudado": 8002400.0, "cantidad_cobros": 398}
+    ]
+}
 
 # ============================================================
 # ENDPOINTS
 # ============================================================
 
-@app.get("/dashboard", response_class=HTMLResponse, summary="Dashboard Web Analítico")
-def ver_dashboard():
-    """Sirve el tablero web interactivo completo en el navegador."""
-    html_file = Path(__file__).resolve().parent / "dashboard.html"
+@app.get("/", response_class=HTMLResponse, summary="Dashboard Web Principal")
+def ruta_raiz():
+    """Entrega el Dashboard web interactivo directamente en la raíz."""
+    html_file = BASE_DIR / "index.html"
+    if not html_file.exists():
+        html_file = BASE_DIR / "dashboard.html"
     if html_file.exists():
         return FileResponse(html_file)
-    return HTMLResponse("<h2>Error: No se encontró dashboard.html</h2>", status_code=404)
+    return HTMLResponse("<h1>Fitness Pro Analytics en línea</h1>")
 
-@app.get("/", summary="Ruta raíz informativa")
-def inicio():
-    return {
-        "sistema": "Gimnasio Fitness Pro - API de Datos",
-        "estado": "En línea",
-        "tablero_web": "/dashboard",
-        "documentacion_swagger": "/docs",
-        "endpoint_powerbi": "/cobros/powerbi",
-        "endpoint_resumen_kpis": "/kpis/resumen"
-    }
+@app.get("/dashboard", response_class=HTMLResponse, summary="Dashboard Web Analítico")
+def ver_dashboard():
+    return ruta_raiz()
 
-@app.get("/cobros/powerbi", summary="Endpoint optimizado para Power BI")
-def obtener_cobros_powerbi():
-    """
-    Retorna la totalidad de los registros limpios en formato JSON plano,
-    ideal para ser consumido directamente por Power Query / Power BI Desktop.
-    """
-    conn = get_db_connection()
-    try:
-        with conn.cursor() as cursor:
-            sql = """
-                SELECT 
-                    id, nro_recibo, fecha_pago, dni_socio, nombre_socio,
-                    edad, plan_membresia, sucursal, 
-                    CAST(monto_pagado AS DOUBLE) AS monto_pagado,
-                    forma_pago, estado_membresia
-                FROM cobros_gimnasio
-                ORDER BY id ASC
-            """
-            cursor.execute(sql)
-            return cursor.fetchall()
-    finally:
-        conn.close()
-
-@app.get("/cobros", summary="Consultar cobros con filtros y paginación")
-def listar_cobros(
-    fecha_desde: Optional[date] = Query(None, description="Fecha mínima (YYYY-MM-DD)"),
-    fecha_hasta: Optional[date] = Query(None, description="Fecha máxima (YYYY-MM-DD)"),
-    plan: Optional[str] = Query(None, description="Filtrar por plan (ej: Musculación)"),
-    sucursal: Optional[str] = Query(None, description="Filtrar por sucursal (ej: Sede Centro)"),
-    limit: int = Query(100, ge=1, le=2000, description="Límite de registros"),
-    offset: int = Query(0, ge=0, description="Desplazamiento / paginación")
-):
-    """Permite consultas personalizadas con filtros dinámicos."""
-    conn = get_db_connection()
-    try:
-        filtros = []
-        parametros = []
-
-        if fecha_desde:
-            filtros.append("fecha_pago >= %s")
-            parametros.append(fecha_desde)
-        if fecha_hasta:
-            filtros.append("fecha_pago <= %s")
-            parametros.append(fecha_hasta)
-        if plan:
-            filtros.append("plan_membresia = %s")
-            parametros.append(plan)
-        if sucursal:
-            filtros.append("sucursal = %s")
-            parametros.append(sucursal)
-
-        where_clause = " WHERE " + " AND ".join(filtros) if filtros else ""
-        sql = f"""
-            SELECT 
-                id, nro_recibo, fecha_pago, dni_socio, nombre_socio,
-                edad, plan_membresia, sucursal,
-                CAST(monto_pagado AS DOUBLE) AS monto_pagado,
-                forma_pago, estado_membresia
-            FROM cobros_gimnasio
-            {where_clause}
-            ORDER BY id ASC
-            LIMIT %s OFFSET %s
-        """
-        parametros.extend([limit, offset])
-
-        with conn.cursor() as cursor:
-            cursor.execute(sql, tuple(parametros))
-            return cursor.fetchall()
-    finally:
-        conn.close()
-
-@app.get("/kpis/resumen", summary="Resumen ejecutivo y KPIs del gimnasio")
+@app.get("/kpis/resumen", summary="Resumen ejecutivo y KPIs")
 def resumen_kpis():
-    """Devuelve métricas clave agregadas para toma de decisiones rápidas."""
     conn = get_db_connection()
+    if not conn:
+        # Modo fallback en la nube (Vercel)
+        return DEMO_KPIS
     try:
         with conn.cursor() as cursor:
-            # Totales generales
             cursor.execute("""
                 SELECT 
                     COUNT(*) as total_transacciones,
@@ -175,7 +122,6 @@ def resumen_kpis():
             """)
             generales = cursor.fetchone()
 
-            # Desglose por plan
             cursor.execute("""
                 SELECT 
                     plan_membresia,
@@ -188,7 +134,6 @@ def resumen_kpis():
             """)
             por_plan = cursor.fetchall()
 
-            # Desglose por sucursal
             cursor.execute("""
                 SELECT 
                     sucursal,
@@ -200,7 +145,6 @@ def resumen_kpis():
             """)
             por_sucursal = cursor.fetchall()
 
-            # Desglose por forma de pago
             cursor.execute("""
                 SELECT 
                     forma_pago,
@@ -221,14 +165,70 @@ def resumen_kpis():
     finally:
         conn.close()
 
-if __name__ == "__main__":
-    print("=" * 65)
-    print("INICIANDO SERVIDOR FASTAPI PARA GIMNASIO FITNESS PRO")
-    print("=" * 65)
-    print("-> API activa en: http://127.0.0.1:8000")
-    print("-> Documentación interactiva (Swagger): http://127.0.0.1:8000/docs")
-    print("-> Endpoint para Power BI: http://127.0.0.1:8000/cobros/powerbi")
-    print("-> Endpoint de KPIs ejecutivos: http://127.0.0.1:8000/kpis/resumen")
-    print("=" * 65)
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+@app.get("/cobros/powerbi", summary="Endpoint para Power BI y analítica")
+def obtener_cobros_powerbi():
+    conn = get_db_connection()
+    if not conn:
+        return get_demo_records()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                SELECT 
+                    id, nro_recibo, fecha_pago, dni_socio, nombre_socio,
+                    edad, plan_membresia, sucursal, 
+                    CAST(monto_pagado AS DOUBLE) AS monto_pagado,
+                    forma_pago, estado_membresia
+                FROM cobros_gimnasio
+                ORDER BY id ASC
+            """)
+            return cursor.fetchall()
+    finally:
+        conn.close()
 
+@app.get("/cobros", summary="Listar cobros con filtros")
+def listar_cobros(
+    plan: Optional[str] = Query(None),
+    sucursal: Optional[str] = Query(None),
+    limit: int = Query(100, ge=1, le=2000),
+    offset: int = Query(0, ge=0)
+):
+    conn = get_db_connection()
+    if not conn:
+        registros = get_demo_records()
+        if plan:
+            registros = [r for r in registros if r.get("plan_membresia") == plan]
+        if sucursal:
+            registros = [r for r in registros if r.get("sucursal") == sucursal]
+        return registros[offset:offset + limit]
+
+    try:
+        filtros = []
+        parametros = []
+        if plan:
+            filtros.append("plan_membresia = %s")
+            parametros.append(plan)
+        if sucursal:
+            filtros.append("sucursal = %s")
+            parametros.append(sucursal)
+
+        where = " WHERE " + " AND ".join(filtros) if filtros else ""
+        sql = f"""
+            SELECT 
+                id, nro_recibo, fecha_pago, dni_socio, nombre_socio,
+                edad, plan_membresia, sucursal,
+                CAST(monto_pagado AS DOUBLE) AS monto_pagado,
+                forma_pago, estado_membresia
+            FROM cobros_gimnasio
+            {where}
+            ORDER BY id ASC
+            LIMIT %s OFFSET %s
+        """
+        parametros.extend([limit, offset])
+        with conn.cursor() as cursor:
+            cursor.execute(sql, tuple(parametros))
+            return cursor.fetchall()
+    finally:
+        conn.close()
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="127.0.0.1", port=8000)
