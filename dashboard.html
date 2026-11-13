@@ -300,7 +300,8 @@
 
   <!-- JAVASCRIPT LOGIC -->
   <script>
-    const API_BASE = "http://127.0.0.1:8000";
+    const esLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+    const API_BASE = esLocal ? "http://127.0.0.1:8000" : window.location.origin;
     let chartPlanesInst = null;
     let chartSucursalesInst = null;
     let chartPagosInst = null;
@@ -314,10 +315,11 @@
     async function cargarTodo() {
       try {
         lucide.createIcons();
-        document.getElementById("statusText").innerText = "Sincronizando con FastAPI...";
+        document.getElementById("statusText").innerText = "Sincronizando datos...";
         
         // 1. Cargar KPIs Resumen
-        const resKpis = await fetch(`${API_BASE}/kpis/resumen`);
+        const urlKpis = esLocal ? `${API_BASE}/kpis/resumen` : `${API_BASE}/api/kpis/resumen`;
+        const resKpis = await fetch(urlKpis);
         if (!resKpis.ok) throw new Error("Error consultando KPIs");
         const dataKpis = await resKpis.json();
         
@@ -325,7 +327,8 @@
         renderizarGraficos(dataKpis);
 
         // 2. Cargar tabla de cobros
-        const resCobros = await fetch(`${API_BASE}/cobros?limit=1500`);
+        const urlCobros = esLocal ? `${API_BASE}/cobros?limit=1500` : `${API_BASE}/api/cobros?limit=1500`;
+        const resCobros = await fetch(urlCobros);
         if (resCobros.ok) {
           todosLosCobros = await resCobros.json();
           cobrosFiltrados = [...todosLosCobros];
@@ -333,12 +336,12 @@
           generarEvolucionMensual(todosLosCobros);
         }
 
-        document.getElementById("statusText").innerText = "Conectado a FastAPI (MySQL Activo)";
+        document.getElementById("statusText").innerText = esLocal ? "Conectado a FastAPI (MySQL Local)" : "En línea (Vercel Cloud)";
         document.getElementById("statusBadge").className = "flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-950/40 border border-emerald-500/30 text-xs";
       } catch (err) {
-        console.warn("No se pudo conectar a la API local, usando datos demostrativos precargados:", err);
-        document.getElementById("statusText").innerText = "Modo Demostración (Local)";
-        document.getElementById("statusBadge").className = "flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-950/40 border border-amber-500/30 text-xs";
+        console.warn("No se pudo conectar a la API en vivo, usando datos demostrativos precargados:", err);
+        document.getElementById("statusText").innerText = "Modo Demostración (Offline)";
+        document.getElementById("statusBadge").className = "flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-950/40 border border-blue-500/30 text-xs";
         cargarDatosDemo();
       }
     }
