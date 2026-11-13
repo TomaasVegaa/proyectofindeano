@@ -62,16 +62,13 @@
         <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-emerald-400 flex items-center justify-center text-white font-black shadow-md shadow-indigo-500/20">
           <i data-lucide="dumbbell" class="w-6 h-6 text-white"></i>
         </div>
-        <div>
-          <div class="flex items-center gap-2">
-            <h1 class="text-xl font-extrabold tracking-tight text-slate-900">
-              FITNESS PRO
-            </h1>
-            <span class="text-[11px] font-bold px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200">
-              ANALYTICS 2.0
-            </span>
-          </div>
-          <p class="text-xs text-slate-500 font-medium">Pipeline: Limpieza (Pandas) → MySQL → FastAPI → Dashboard Interactivo</p>
+        <div class="flex items-center gap-2">
+          <h1 class="text-xl font-extrabold tracking-tight text-slate-900">
+            FITNESS PRO
+          </h1>
+          <span class="text-[11px] font-bold px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200">
+            ANALYTICS 2.0
+          </span>
         </div>
       </div>
 
@@ -112,14 +109,14 @@
           <span class="text-[11px] font-normal text-slate-400 capitalize">(Impacta en todos los gráficos y KPIs)</span>
         </div>
 
-        <span class="text-xs text-indigo-600 font-semibold bg-indigo-50 px-2.5 py-1 rounded-md border border-indigo-100 flex items-center gap-1">
-          <i data-lucide="mouse-pointer-click" class="w-3.5 h-3.5"></i>
-          Tip: También podés tocar barras o porciones de los gráficos para filtrar
-        </span>
+        <button onclick="resetearFiltros()" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-600 border border-slate-200 hover:border-rose-200 transition shadow-sm">
+          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+          Quitar Filtros
+        </button>
       </div>
 
       <!-- Controles de Filtros -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3 pt-1">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 pt-1">
         
         <!-- Buscador -->
         <div class="relative">
@@ -132,7 +129,7 @@
         <div>
           <select id="filtroSucursal" onchange="aplicarFiltrosDesdeSelect()" 
             class="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition font-medium">
-            <option value="">🏢 Todas las Sedes</option>
+            <option value="">Todas las Sedes</option>
             <option value="Sede Centro">Sede Centro</option>
             <option value="Sede Norte">Sede Norte</option>
             <option value="Sede Sur">Sede Sur</option>
@@ -144,7 +141,7 @@
         <div>
           <select id="filtroPlan" onchange="aplicarFiltrosDesdeSelect()" 
             class="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition font-medium">
-            <option value="">🏋️ Todos los Planes</option>
+            <option value="">Todos los Planes</option>
             <option value="Musculación">Musculación</option>
             <option value="Pase Libre">Pase Libre</option>
             <option value="CrossFit">CrossFit</option>
@@ -157,7 +154,7 @@
         <div>
           <select id="filtroPago" onchange="aplicarFiltrosDesdeSelect()" 
             class="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition font-medium">
-            <option value="">💳 Todos los Medios de Pago</option>
+            <option value="">Todos los Medios de Pago</option>
             <option value="Efectivo">Efectivo</option>
             <option value="Mercado Pago">Mercado Pago</option>
             <option value="Transferencia">Transferencia</option>
@@ -170,11 +167,20 @@
         <div>
           <select id="filtroEstado" onchange="aplicarFiltrosDesdeSelect()" 
             class="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 border border-slate-200 text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition font-medium">
-            <option value="">🟢 Todos los Estados</option>
+            <option value="">Todos los Estados</option>
             <option value="Activo">Activo</option>
             <option value="Moroso">Moroso</option>
             <option value="Inactivo">Inactivo</option>
           </select>
+        </div>
+
+        <!-- Botón Limpiar Filtros en la fila -->
+        <div>
+          <button onclick="resetearFiltros()" 
+            class="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-bold rounded-xl bg-slate-100 hover:bg-rose-50 text-slate-700 hover:text-rose-600 border border-slate-200 hover:border-rose-200 transition shadow-sm">
+            <i data-lucide="filter-x" class="w-3.5 h-3.5 text-slate-500"></i>
+            Limpiar Filtros
+          </button>
         </div>
 
       </div>
@@ -740,11 +746,11 @@
       
       let activos = [];
 
-      if (estadoFiltros.sucursal) activos.push({ tipo: "sucursal", label: `🏢 Sede: ${estadoFiltros.sucursal}` });
-      if (estadoFiltros.plan) activos.push({ tipo: "plan", label: `🏋️ Plan: ${estadoFiltros.plan}` });
-      if (estadoFiltros.pago) activos.push({ tipo: "pago", label: `💳 Pago: ${estadoFiltros.pago}` });
-      if (estadoFiltros.estado) activos.push({ tipo: "estado", label: `🟢 Estado: ${estadoFiltros.estado}` });
-      if (estadoFiltros.busqueda) activos.push({ tipo: "busqueda", label: `🔍 "${estadoFiltros.busqueda}"` });
+      if (estadoFiltros.sucursal) activos.push({ tipo: "sucursal", label: `Sede: ${estadoFiltros.sucursal}` });
+      if (estadoFiltros.plan) activos.push({ tipo: "plan", label: `Plan: ${estadoFiltros.plan}` });
+      if (estadoFiltros.pago) activos.push({ tipo: "pago", label: `Pago: ${estadoFiltros.pago}` });
+      if (estadoFiltros.estado) activos.push({ tipo: "estado", label: `Estado: ${estadoFiltros.estado}` });
+      if (estadoFiltros.busqueda) activos.push({ tipo: "busqueda", label: `"${estadoFiltros.busqueda}"` });
 
       // Badges en encabezados de los gráficos
       document.getElementById("badgeFiltroPlan").className = estadoFiltros.plan ? "text-[10px] bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-bold" : "hidden";

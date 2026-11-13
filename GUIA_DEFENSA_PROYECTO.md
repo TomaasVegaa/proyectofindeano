@@ -111,3 +111,4 @@ El proyecto sigue con absoluta fidelidad las 5 etapas del diagrama:
 - **Plan líder en recaudación:** **Musculación** (representa más del 45% de los ingresos).
 - **Sucursal con mayor facturación:** **Sede Centro**, seguida por Sede Norte.
 - **Medio de pago principal:** **Efectivo** (43%) y **Mercado Pago** (37%).
+
